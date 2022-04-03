@@ -1,0 +1,55 @@
+* {
+    font-family: 'Montserrat', sans-serif !important;
+}
+
+.Select-control {
+    background-color:#060606 !important;
+}
+
+.Select-menu-outer {
+    background-color: #060606 !important;
+}
+
+.Select {
+    background-color: #060606 !important;
+    color: #FFFFFF !important;
+}
+
+.dash-table-container .row {
+    display: block;
+    margin: 0;
+}
+
+.export {
+    color: #FCFCFC;
+    background-color: #060606 !important;
+    border-color: #060606 !important;
+    display: inline-block;
+    font-weight: 400;
+    text-align: center;
+    font-family: "'Montserrat', sans-serif white-space: nowrap";
+    vertical-align: middle;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    border: 1px solid transparent;
+    padding: .375rem .75rem;
+    font-size: 1rem;
+    line-height: 1.5;
+    border-radius: .25rem;
+    transition: color .15s ease-in-out,background-color .15s ease-in-out,border-color .15s ease-in-out,box-shadow .15s ease-in-out;
+}
+
+    .export:hover {
+        color: #FFFF00 !important;
+        font-weight: 600;
+    }
+
+body {
+    overflow-x: hidden;
+}
+
+.rc-slider-mark{
+    display: none;
+}

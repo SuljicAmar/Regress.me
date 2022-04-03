@@ -89,7 +89,9 @@ rowFig = dbc.Container(
                 options=[
                 {'label': 'Correlation Matrix', 'value': 'figCorr'},
                 {'label': 'Scatter Plot', 'value': 'figScatter'},
+                {'label': '3D Scatter Plot', 'value': 'figScatter3D'},
                 {'label': 'Line Plot', 'value': 'figLine'},
+                {'label': '3D Line Plot', 'value': 'figLine3D'},
                 {'label': '2D Hist', 'value': 'fig2D'},
                 {'label': 'Box Plot', 'value': 'figBox'},
                 {'label': 'Distribution Plot', 'value': 'figDist'},

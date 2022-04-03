@@ -123,6 +123,27 @@ def updateRadioIV(df2, y, x, btn):
     else:
         raise PreventUpdate
 
+@app.callback([Output('radioIV3D', 'options'),
+               Output('radioIV3D', 'value'),
+               Output('radioIV3DZ', 'options'),
+               Output('radioIV3DZ', 'value')],
+              [State('userData', 'data'),
+               State('dropDV', 'value'),
+               State('checkIV', 'value'),
+               Input('btnFit', 'n_clicks')
+               ])
+def updateRadioIV3D(df2, y, x, btn):
+    if btn:
+        try:
+            df = pd.read_json(df2, orient='split')
+            numeric_col = df.drop(columns = [y])[x]._get_numeric_data().columns
+            temp = [{'label': str(i), 'value': str(i)} for i in numeric_col]
+            return temp, numeric_col[0], temp, numeric_col[0]
+        except Exception as exception:
+            print(exception)
+    else:
+        raise PreventUpdate
+
 
 @app.callback([Output('filterDist', 'options'),
                Output('userXDist', 'options'),
@@ -332,6 +353,34 @@ def updateScatterChoice(df2, x):
     else:
         raise PreventUpdate
 
+@app.callback([Output('userXScatter3D', 'options'),
+               Output('userXScatter3D', 'value'),
+               Output('userYScatter3D', 'options'),
+               Output('userYScatter3D', 'value'),
+               Output('userZScatter3D', 'options'),
+               Output('userZScatter3D', 'value'),
+               Output('filterScatter3D', 'options')],
+              [State('userData', 'data'),
+               Input('navFig', 'value')
+               ])
+def updateScatterChoice3D(df2, x):
+    if x == 'figScatter3D':
+        df = pd.read_json(df2, orient='split')
+        numeric_col = df._get_numeric_data().columns
+        temp = []
+        temp2 = []
+        for i in df.columns:
+            if i not in numeric_col:
+                temp2.append({'label': str(i), 'value': str(i)})
+            if is_datetime(df[i]):
+                temp.append({'label': str(i), 'value': str(i)})    
+        for i in numeric_col:
+            temp.append({'label': str(i), 'value': str(i)})
+        return [temp, str(numeric_col[0]), temp, str(numeric_col[0]), temp, str(numeric_col[0]), temp2]
+    else:
+        raise PreventUpdate
+
+
 @app.callback([Output('userXLine', 'options'),
                Output('userXLine', 'value'),
                Output('userYLine', 'options'),
@@ -357,6 +406,32 @@ def updateLineChoice(df2, x):
     else:
         raise PreventUpdate
 
+@app.callback([Output('userXLine3D', 'options'),
+               Output('userXLine3D', 'value'),
+               Output('userYLine3D', 'options'),
+               Output('userYLine3D', 'value'),
+               Output('userZLine3D', 'options'),
+               Output('userZLine3D', 'value'),
+               Output('filterLine3D', 'options')],
+              [State('userData', 'data'),
+               Input('navFig', 'value')
+               ])
+def updateLineChoice(df2, x):
+    if x == 'figLine3D':
+        df = pd.read_json(df2, orient='split')
+        numeric_col = df._get_numeric_data().columns
+        temp = []
+        temp2 = []
+        for i in df.columns:
+            if i not in numeric_col:
+                temp2.append({'label': str(i), 'value': str(i)})
+            if is_datetime(df[i]):
+                temp.append({'label': str(i), 'value': str(i)})    
+        for i in numeric_col:
+            temp.append({'label': str(i), 'value': str(i)})
+        return [temp, str(numeric_col[0]), temp, str(numeric_col[0]), temp, str(numeric_col[0]), temp2]
+    else:
+        raise PreventUpdate
 
 @app.callback([Output('userX2D', 'options'),
                Output('userX2D', 'value'),
@@ -578,6 +653,43 @@ def updateScatter(df2, x, y, filters):
                 ) 
     return fig
 
+@app.callback(Output('figScatter3D', 'figure'),
+              [State('userData', 'data'),
+               Input('userXScatter3D', 'value'),
+               Input('userYScatter3D', 'value'),
+               Input('userZScatter3D', 'value'),
+               Input('filterScatter3D', 'value')])
+def updateScatter3D(df2, x, y, z, filters):
+    df = pd.read_json(df2, orient='split')
+    fig = go.Figure()
+    if filters in df.columns:
+        for i in df[filters].unique():
+            fig.add_scatter3d(x=df.loc[df[filters] == i].sort_values(by=x)[x].values, y=df.loc[df[filters] == i].sort_values(by=x)[y].values, z=df.loc[df[filters] == i].sort_values(by=x)[z].values,
+                                        mode='markers',
+                                        name=i, 
+                                        marker=dict(size=5))
+    else:
+        fig.add_trace(go.Scatter3d(x=df.sort_values(by=x)[x].values, y=df.sort_values(by=x)[y].values, z=df.sort_values(by=x)[z].values,
+                                    mode='markers',
+                                    marker=dict(size=5)))
+    fig.update_yaxes(automargin=True)
+    fig.update_xaxes(automargin=True)
+    fig.layout.xaxis.fixedrange = True
+    fig.layout.yaxis.fixedrange = True
+    fig.update_layout(
+                xaxis_title=x,
+                hoverlabel=dict(bgcolor='white', font_color='black', font_size=18),
+                yaxis_title=y,
+                template='cyborg',
+                paper_bgcolor='#060606',
+                plot_bgcolor='#060606',
+                font_family = 'Montserrat, sans-serif',
+                font_color='#FCFCFC',
+                legend_title_font_color='#FFFDFD',
+                hovermode='closest'
+                ) 
+    return fig
+
 @app.callback(Output('figLine', 'figure'),
               [State('userData', 'data'),
                Input('userXLine', 'value'),
@@ -597,6 +709,44 @@ def updateLine(df2, x, y, filters):
                                 mode='lines',
                                 name=x))
 
+    fig.update_yaxes(automargin=True)
+    fig.update_xaxes(automargin=True)
+    fig.layout.xaxis.fixedrange = True
+    fig.layout.yaxis.fixedrange = True
+    fig.update_layout(
+                xaxis_title=x,
+                yaxis_title=y,
+                hoverlabel=dict(bgcolor='white', font_color='black', font_size=18),
+                paper_bgcolor='#060606',
+                plot_bgcolor='#060606',
+                font_family = 'Montserrat, sans-serif',
+                font_color='#FCFCFC',
+                template='cyborg',
+                title_font_family='Arial, Helvetica, sans-serif',
+                title_font_color='#FCFCFC',
+                legend_title_font_color='#FFFDFD',
+                hovermode='closest'
+                ) 
+    return fig
+
+@app.callback(Output('figLine3D', 'figure'),
+              [State('userData', 'data'),
+               Input('userXLine3D', 'value'),
+               Input('userYLine3D', 'value'),
+               Input('userYLine3D', 'value'),
+               Input('filterLine3D', 'value')
+               ])
+def updateLine3D(df2, x, y, z, filters):
+    df = pd.read_json(df2, orient='split')
+    fig = go.Figure()
+    if filters in df.columns:
+        for i in df[filters].unique():
+            fig.add_scatter3d(x=df.loc[df[filters] == i].sort_values(by=x)[x].values, y=df.loc[df[filters] == i].sort_values(by=x)[y].values, z=df.loc[df[filters] == i].sort_values(by=x)[z].values,
+                                        mode='lines',
+                                        name=i)
+    else:
+        fig.add_trace(go.Scatter3d(x=df.sort_values(by=x)[x].values, y=df.sort_values(by=x)[y].values, z=df.sort_values(by=x)[z].values,
+                                    mode='lines'))
     fig.update_yaxes(automargin=True)
     fig.update_xaxes(automargin=True)
     fig.layout.xaxis.fixedrange = True
@@ -703,6 +853,71 @@ def updateFitFigure(df2, x, y, transformation, btn, TrainOrTest, xtest):
     else:
         raise PreventUpdate
 
+@app.callback(Output('figFit3D', 'figure'),
+              [State('userYhat', 'data'),             
+              Input('radioIV3D', 'value'),
+              Input('radioIV3DZ', 'value'),
+              State('dropDV', 'value'),
+              State('radioTransform', 'value'),
+              Input('btnFit', 'n_clicks'),
+              Input('radioTrainOrTest', 'value'),
+              Input('userTestX', 'data'),
+               ], prevent_initial_call=True)
+def updateFitFigure(df2, x, z, y, transformation, btn, TrainOrTest, xtest):
+    fig = go.Figure()
+    if btn:  
+        if x:
+            if str(TrainOrTest) == 'train':
+                df = pd.read_json(df2)
+            elif str(TrainOrTest) == 'test':
+                df = pd.read_json(xtest)
+            if transformation == 'standardize':
+                fig.add_trace(go.Scatter3d(x=Standardize(df.sort_values(by=x)[x].values), y=df.sort_values(by=x)[y].values, z=df.sort_values(by=x)[z].values,
+                                mode='markers',
+                                marker=dict(size=5),
+                                name=x))
+                fig.add_trace(go.Scatter3d(x=Standardize(df.sort_values(by=x)[x].values), y=df.sort_values(by=x)['userYhat'].values, z=df.sort_values(by=x)[z].values,
+                                mode='lines',
+                                name='OLS Best Fit'))
+            elif transformation == 'minmax':
+                fig.add_trace(go.Scatter3d(x=MinMax(df.sort_values(by=x)[x].values), y=df.sort_values(by=x)[y].values, z=df.sort_values(by=x)[z].values,
+                                    mode='markers',
+                                    marker=dict(size=5),
+                                    name=x))
+                fig.add_trace(go.Scatter3d(x=MinMax(df.sort_values(by=x)[x].values), y=df.sort_values(by=x)['userYhat'].values, z=df.sort_values(by=x)[z].values,
+                                    mode='lines',
+                                    name='OLS Best Fit'))   
+            else:
+                fig.add_trace(go.Scatter3d(x=df[x], y=df[y], z=df[z].values,
+                                    mode='markers',
+                                    marker=dict(size=5),
+                                    name=x))
+                fig.add_trace(go.Scatter3d(x=df.sort_values(by=x)[x], y=df.sort_values(by=x)['userYhat'], z=df.sort_values(by=x)[z].values,
+                                    mode='lines',
+                                    name='OLS Best Fit'))
+            fig.layout.xaxis.fixedrange = True
+            fig.update_yaxes(automargin=True)
+            fig.update_xaxes(automargin=True)
+            fig.layout.yaxis.fixedrange = True
+            fig.update_layout(
+                    xaxis_title=x,
+                    yaxis_title=y,
+                    hoverlabel=dict(bgcolor='white', font_color='black', font_size=18),
+                    paper_bgcolor='#060606',
+                    plot_bgcolor='#060606',
+                    template='cyborg',
+                    font_family = 'Montserrat, sans-serif',
+                    font_color='#FCFCFC',
+                    title_font_family='Arial, Helvetica, sans-serif',
+                    title_font_color='#FCFCFC',
+                    legend_title_font_color='#FFFDFD',
+                    hovermode='closest'
+                    )           
+            return fig
+        else:
+            raise PreventUpdate
+    else:
+        raise PreventUpdate
 
 @app.callback(Output('figResiduals', 'figure'),
               [Input('userYhat', 'data'),
@@ -810,7 +1025,7 @@ def update_vmr(val):
             print(exception)
     elif val == 'modelfit':
         try:
-            return  [dbc.Row([dbc.Col(html.Div(cardFitX), width=5)], justify="center", align="center"), dbc.Row([dbc.Col(html.Div(cardScatterFit), width=12)], justify="center", align="center")]
+            return [dbc.Row([dbc.Col(html.Div(cardFitX), width=5)], justify="center", align="center"), dbc.Row([dbc.Col(html.Div(cardScatterFit), width=12)], justify="center", align="center"), html.Hr(), dbc.Row([dbc.Col(html.Div(cardFitX3D), width=5)], justify="center", align="center"), dbc.Row([dbc.Col(html.Div(cardScatterFit3D), width=12)], justify="center", align="center")]
         except Exception as exception:
             print(exception)
     else:
@@ -822,10 +1037,14 @@ def update_vmr(val):
 def update_user_choice(val):
     if val == 'figScatter':
         return cardScatter
+    if val == 'figScatter3D':
+        return cardScatter3D
     elif val == 'fig2D':
         return card2D
     elif val == 'figLine':
         return cardLine
+    elif val == 'figLine3D':
+        return cardLine3D
     elif val == 'figCorr':
         return cardCorr
     elif val == 'ds':
@@ -997,7 +1216,7 @@ def run(df2, y, x, transformation, btn, prcnt):
 
 
 if __name__ == '__main__':
-    app.run_server(debug=False,dev_tools_ui=False,dev_tools_props_check=False)
-    #app.run_server(debug=True)   
+    #app.run_server(debug=False,dev_tools_ui=False,dev_tools_props_check=False)
+    app.run_server(debug=True)   
 
 

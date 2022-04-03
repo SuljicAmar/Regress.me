@@ -64,6 +64,27 @@ cardLine = dbc.Card(dbc.CardBody(
     ),  style={'background-color': '#060606', }
 )
 
+cardLine3D = dbc.Card(dbc.CardBody(
+    [
+        dbc.Label('X for Plot', className='mt-3', style={'color': '#FFFDFD', }), 
+        dcc.Dropdown(
+        id='userXLine3D',style={'color':'#FFFDFD', 'background-color': '#060606', }
+        ),
+        dbc.Label('Y for Plot', className='mt-3', style={'color': '#FFFDFD', }), 
+        dcc.Dropdown(
+        id='userYLine3D',style={'color':'#FFFDFD', 'background-color': '#060606', }
+        ),
+        dbc.Label('Z for Plot', className='mt-3', style={'color': '#FFFDFD', }), 
+        dcc.Dropdown(
+        id='userZLine3D',style={'color':'#FFFDFD', 'background-color': '#060606', }
+        ),
+        dcc.Graph(id='figLine3D',  config={'displayModeBar': False}),
+        dbc.Label('Filter', className='mt-3', style={'color': '#FFFDFD', }), 
+        dcc.Dropdown(id='filterLine3D', style={'color':'#FFFDFD', 'background-color': '#060606', }),
+        ]
+    ),  style={'background-color': '#060606', }
+)
+
 card2D = dbc.Card(dbc.CardBody(
     [
         dbc.Label('X for Plot', className='mt-3', style={'color': '#FFFDFD', }), 
@@ -96,6 +117,27 @@ cardScatter = dbc.Card(dbc.CardBody(
         dcc.Graph(id='figScatter',  config={'displayModeBar': False}),
         dbc.Label('Filter', className='mt-3', style={'color': '#FFFDFD', }), 
         dcc.Dropdown(id='filterScatter', style={'color':'#FFFDFD', 'background-color': '#060606', }),
+        ]
+    ),  style={'background-color': '#060606', }
+)
+
+cardScatter3D = dbc.Card(dbc.CardBody(
+    [
+        dbc.Label('X for Plot', className='mt-3', style={'color': '#FFFDFD', }), 
+        dcc.Dropdown(
+        id='userXScatter3D',style={'color':'#FFFDFD', 'background-color': '#060606', }
+        ),
+        dbc.Label('Y for Plot', className='mt-3', style={'color': '#FFFDFD', }), 
+        dcc.Dropdown(
+        id='userYScatter3D',style={'color':'#FFFDFD', 'background-color': '#060606', }
+        ),
+        dbc.Label('Z for Plot', className='mt-3', style={'color': '#FFFDFD', }), 
+        dcc.Dropdown(
+        id='userZScatter3D',style={'color':'#FFFDFD', 'background-color': '#060606', }
+        ),
+        dcc.Graph(id='figScatter3D',  config={'displayModeBar': False}),
+        dbc.Label('Filter', className='mt-3', style={'color': '#FFFDFD', }), 
+        dcc.Dropdown(id='filterScatter3D', style={'color':'#FFFDFD', 'background-color': '#060606', }),
         ]
     ),  style={'background-color': '#060606', }
 )
@@ -179,7 +221,15 @@ cardFitX = dbc.Card(dbc.CardBody(
 
 cardScatterFit = dbc.Card(dbc.CardBody([dcc.Graph(id='figFit',  config={'displayModeBar': False})]),  style={'background-color': '#060606', })
 
+cardFitX3D = dbc.Card(dbc.CardBody(
+            [dbc.Label('X for Plot', className='mt-3', style={'color': '#FFFDFD', }), 
+        dbc.RadioItems(
+        id='radioIV3D', inline=True),
+        dbc.Label('Z for Plot', className='mt-3', style={'color': '#FFFDFD', }),
+        dbc.RadioItems(
+        id='radioIV3DZ', inline=True)]),style={'color': '#FCFCFC', 'background-color': '#060606', })
 
+cardScatterFit3D = dbc.Card(dbc.CardBody([dcc.Graph(id='figFit3D',  config={'displayModeBar': False})]),  style={'background-color': '#060606', })
 
 
 cardUpload = dbc.Card(

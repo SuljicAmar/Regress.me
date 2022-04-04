@@ -890,7 +890,7 @@ def updateFitFigure3D(df2, x, z, y, transformation, btn, TrainOrTest, xtest):
                 fig.add_trace(go.Scatter3d(x=df[x], y=df[z], z=df[y].values,
                                     mode='markers',
                                     marker=dict(size=5),
-                                    name=x))
+                                    name='Sample'))
                 fig.add_trace(go.Scatter3d(x=df.sort_values(by=x)[x], y=df.sort_values(by=x)[z], z=df.sort_values(by=x)['userYhat'].values,
                                     mode='lines',
                                     name='OLS Best Fit'))
@@ -909,7 +909,7 @@ def updateFitFigure3D(df2, x, z, y, transformation, btn, TrainOrTest, xtest):
                     title_font_family='Arial, Helvetica, sans-serif',
                     title_font_color='#FCFCFC',
                     legend_title_font_color='#FFFDFD',
-                    hovermode='closest'
+                    hovermode=False
                     )           
             return fig
         else:

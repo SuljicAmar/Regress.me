@@ -222,10 +222,10 @@ cardFitX = dbc.Card(dbc.CardBody(
 cardScatterFit = dbc.Card(dbc.CardBody([dcc.Graph(id='figFit',  config={'displayModeBar': False})]),  style={'background-color': '#060606', })
 
 cardFitX3D = dbc.Card(dbc.CardBody(
-            [dbc.Label('X for Plot', className='mt-3', style={'color': '#FFFDFD', }), 
+            [dbc.Label('Var 1 for Plot', className='mt-3', style={'color': '#FFFDFD', }), 
         dbc.RadioItems(
         id='radioIV3D', inline=True),
-        dbc.Label('Z for Plot', className='mt-3', style={'color': '#FFFDFD', }),
+        dbc.Label('Var 2 for Plot', className='mt-3', style={'color': '#FFFDFD', }),
         dbc.RadioItems(
         id='radioIV3DZ', inline=True)]),style={'color': '#FCFCFC', 'background-color': '#060606', })
 

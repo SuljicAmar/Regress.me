@@ -679,7 +679,7 @@ def updateScatter3D(df2, x, y, z, filters):
     fig.update_layout(
                 xaxis_title=x,
                 hoverlabel=dict(bgcolor='white', font_color='black', font_size=18),
-                yaxis_title=y,
+                scene=dict(xaxis_title=x,yaxis_title=y,zaxis_title=z),
                 template='cyborg',
                 paper_bgcolor='#060606',
                 plot_bgcolor='#060606',
@@ -733,7 +733,7 @@ def updateLine(df2, x, y, filters):
               [State('userData', 'data'),
                Input('userXLine3D', 'value'),
                Input('userYLine3D', 'value'),
-               Input('userYLine3D', 'value'),
+               Input('userZLine3D', 'value'),
                Input('filterLine3D', 'value')
                ])
 def updateLine3D(df2, x, y, z, filters):
@@ -752,8 +752,7 @@ def updateLine3D(df2, x, y, z, filters):
     fig.layout.xaxis.fixedrange = True
     fig.layout.yaxis.fixedrange = True
     fig.update_layout(
-                xaxis_title=x,
-                yaxis_title=y,
+                scene=dict(xaxis_title=x,yaxis_title=y,zaxis_title=z),
                 hoverlabel=dict(bgcolor='white', font_color='black', font_size=18),
                 paper_bgcolor='#060606',
                 plot_bgcolor='#060606',
@@ -863,7 +862,7 @@ def updateFitFigure(df2, x, y, transformation, btn, TrainOrTest, xtest):
               Input('radioTrainOrTest', 'value'),
               Input('userTestX', 'data'),
                ], prevent_initial_call=True)
-def updateFitFigure(df2, x, z, y, transformation, btn, TrainOrTest, xtest):
+def updateFitFigure3D(df2, x, z, y, transformation, btn, TrainOrTest, xtest):
     fig = go.Figure()
     if btn:  
         if x:
@@ -872,27 +871,27 @@ def updateFitFigure(df2, x, z, y, transformation, btn, TrainOrTest, xtest):
             elif str(TrainOrTest) == 'test':
                 df = pd.read_json(xtest)
             if transformation == 'standardize':
-                fig.add_trace(go.Scatter3d(x=Standardize(df.sort_values(by=x)[x].values), y=df.sort_values(by=x)[y].values, z=df.sort_values(by=x)[z].values,
+                fig.add_trace(go.Scatter3d(x=Standardize(df.sort_values(by=x)[x].values), y=df.sort_values(by=x)[z].values, z=df.sort_values(by=x)[y].values,
                                 mode='markers',
                                 marker=dict(size=5),
                                 name=x))
-                fig.add_trace(go.Scatter3d(x=Standardize(df.sort_values(by=x)[x].values), y=df.sort_values(by=x)['userYhat'].values, z=df.sort_values(by=x)[z].values,
+                fig.add_trace(go.Scatter3d(x=Standardize(df.sort_values(by=x)[x].values), y=df.sort_values(by=x)[z].values, z=df.sort_values(by=x)['userYhat'].values,
                                 mode='lines',
                                 name='OLS Best Fit'))
             elif transformation == 'minmax':
-                fig.add_trace(go.Scatter3d(x=MinMax(df.sort_values(by=x)[x].values), y=df.sort_values(by=x)[y].values, z=df.sort_values(by=x)[z].values,
+                fig.add_trace(go.Scatter3d(x=MinMax(df.sort_values(by=x)[x].values), y=df.sort_values(by=x)[z].values, z=df.sort_values(by=x)[y].values,
                                     mode='markers',
                                     marker=dict(size=5),
                                     name=x))
-                fig.add_trace(go.Scatter3d(x=MinMax(df.sort_values(by=x)[x].values), y=df.sort_values(by=x)['userYhat'].values, z=df.sort_values(by=x)[z].values,
+                fig.add_trace(go.Scatter3d(x=MinMax(df.sort_values(by=x)[x].values), y=df.sort_values(by=x)[z].values, z=df.sort_values(by=x)['userYhat'].values,
                                     mode='lines',
                                     name='OLS Best Fit'))   
             else:
-                fig.add_trace(go.Scatter3d(x=df[x], y=df[y], z=df[z].values,
+                fig.add_trace(go.Scatter3d(x=df[x], y=df[z], z=df[y].values,
                                     mode='markers',
                                     marker=dict(size=5),
                                     name=x))
-                fig.add_trace(go.Scatter3d(x=df.sort_values(by=x)[x], y=df.sort_values(by=x)['userYhat'], z=df.sort_values(by=x)[z].values,
+                fig.add_trace(go.Scatter3d(x=df.sort_values(by=x)[x], y=df.sort_values(by=x)[z], z=df.sort_values(by=x)['userYhat'].values,
                                     mode='lines',
                                     name='OLS Best Fit'))
             fig.layout.xaxis.fixedrange = True
@@ -900,8 +899,7 @@ def updateFitFigure(df2, x, z, y, transformation, btn, TrainOrTest, xtest):
             fig.update_xaxes(automargin=True)
             fig.layout.yaxis.fixedrange = True
             fig.update_layout(
-                    xaxis_title=x,
-                    yaxis_title=y,
+                    scene=dict(xaxis_title=x,yaxis_title=z,zaxis_title=y),
                     hoverlabel=dict(bgcolor='white', font_color='black', font_size=18),
                     paper_bgcolor='#060606',
                     plot_bgcolor='#060606',
@@ -1216,7 +1214,7 @@ def run(df2, y, x, transformation, btn, prcnt):
 
 
 if __name__ == '__main__':
-    #app.run_server(debug=False,dev_tools_ui=False,dev_tools_props_check=False)
-    app.run_server(debug=True)   
+    app.run_server(debug=False,dev_tools_ui=False,dev_tools_props_check=False)
+    #app.run_server(debug=True)   
 
 

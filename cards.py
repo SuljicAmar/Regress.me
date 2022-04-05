@@ -104,6 +104,21 @@ card2D = dbc.Card(dbc.CardBody(
     ),  style={'background-color': '#060606', }
 )
 
+cardContour2D = dbc.Card(dbc.CardBody(
+    [
+        dbc.Label('X for Plot', className='mt-3', style={'color': '#FFFDFD', }), 
+        dcc.Dropdown(
+        id='userXContour2D',style={'color':'#FFFDFD', 'background-color': '#060606', }
+        ),
+        dbc.Label('Y for Plot', className='mt-3', style={'color': '#FFFDFD', }), 
+        dcc.Dropdown(
+        id='userYContour2D',style={'color':'#FFFDFD', 'background-color': '#060606', }
+        ),
+        dcc.Graph(id='figContour2D',  config={'displayModeBar': False}),       
+        ]
+    ),  style={'background-color': '#060606', }
+)
+
 cardScatter = dbc.Card(dbc.CardBody(
     [
         dbc.Label('X for Plot', className='mt-3', style={'color': '#FFFDFD', }), 
@@ -138,6 +153,32 @@ cardScatter3D = dbc.Card(dbc.CardBody(
         dcc.Graph(id='figScatter3D',  config={'displayModeBar': False}),
         dbc.Label('Filter', className='mt-3', style={'color': '#FFFDFD', }), 
         dcc.Dropdown(id='filterScatter3D', style={'color':'#FFFDFD', 'background-color': '#060606', }),
+        ]
+    ),  style={'background-color': '#060606', }
+)
+
+cardSurface3D = dbc.Card(dbc.CardBody(
+    [
+        dcc.Graph(id='figSurface3D',  config={'displayModeBar': False}),
+        ]
+    ),  style={'background-color': '#060606', }
+)
+
+cardMesh3D = dbc.Card(dbc.CardBody(
+    [
+        dbc.Label('X for Plot', className='mt-3', style={'color': '#FFFDFD', }), 
+        dcc.Dropdown(
+        id='userXMesh3D',style={'color':'#FFFDFD', 'background-color': '#060606', }
+        ),
+        dbc.Label('Y for Plot', className='mt-3', style={'color': '#FFFDFD', }), 
+        dcc.Dropdown(
+        id='userYMesh3D',style={'color':'#FFFDFD', 'background-color': '#060606', }
+        ),
+        dbc.Label('Z for Plot', className='mt-3', style={'color': '#FFFDFD', }), 
+        dcc.Dropdown(
+        id='userZMesh3D',style={'color':'#FFFDFD', 'background-color': '#060606', }
+        ),
+        dcc.Graph(id='figMesh3D',  config={'displayModeBar': False}),
         ]
     ),  style={'background-color': '#060606', }
 )

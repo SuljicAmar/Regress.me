@@ -381,6 +381,33 @@ def updateScatterChoice3D(df2, x):
         raise PreventUpdate
 
 
+@app.callback([Output('userXMesh3D', 'options'),
+               Output('userXMesh3D', 'value'),
+               Output('userYMesh3D', 'options'),
+               Output('userYMesh3D', 'value'),
+               Output('userZMesh3D', 'options'),
+               Output('userZMesh3D', 'value')],
+              [State('userData', 'data'),
+               Input('navFig', 'value')
+               ])
+def updateMeshChoice3D(df2, x):
+    if x == 'figMesh':
+        df = pd.read_json(df2, orient='split')
+        numeric_col = df._get_numeric_data().columns
+        temp = []
+        temp2 = []
+        for i in df.columns:
+            if i not in numeric_col:
+                temp2.append({'label': str(i), 'value': str(i)})
+            if is_datetime(df[i]):
+                temp.append({'label': str(i), 'value': str(i)})    
+        for i in numeric_col:
+            temp.append({'label': str(i), 'value': str(i)})
+        return [temp, str(numeric_col[0]), temp, str(numeric_col[1]), temp, str(numeric_col[2])]
+    else:
+        raise PreventUpdate
+
+
 @app.callback([Output('userXLine', 'options'),
                Output('userXLine', 'value'),
                Output('userYLine', 'options'),
@@ -459,6 +486,30 @@ def update2DOptions(df2, x):
     else:
         raise PreventUpdate
 
+@app.callback([Output('userXContour2D', 'options'),
+               Output('userXContour2D', 'value'),
+               Output('userYContour2D', 'options'),
+               Output('userYContour2D', 'value')],
+              [State('userData', 'data'),
+               Input('navFig', 'value')
+               ])
+def updateContour2DOptions(df2, x):
+    if x == 'figContour2D':
+        df = pd.read_json(df2, orient='split')
+        numeric_col = df._get_numeric_data().columns
+        temp = []
+        temp2 = []
+        for i in df.columns:
+            if i not in numeric_col:
+                temp2.append({'label': str(i), 'value': str(i)})
+            if is_datetime(df[i]):
+                temp.append({'label': str(i), 'value': str(i)})    
+        for i in numeric_col:
+            temp.append({'label': str(i), 'value': str(i)})
+        return [temp, str(numeric_col[0]), temp, str(numeric_col[0])]
+    else:
+        raise PreventUpdate
+
 @app.callback(Output('figDist', 'figure'),
               [State('userData', 'data'),
                Input('userXDist', 'value'),
@@ -516,6 +567,36 @@ def update2D(df2, x, y, r, c):
     fig.update_layout(
                 yaxis_visible = False,
                 xaxis_title=x,
+                autosize=True,
+                template='cyborg',
+                paper_bgcolor='#060606',
+                plot_bgcolor='#060606',
+                hoverlabel=dict(bgcolor='white', font_color='black', font_size=18),
+                font_family = 'Montserrat, sans-serif',
+                font_color='#FCFCFC',
+                title_font_family='Arial, Helvetica, sans-serif',
+                title_font_color='#FCFCFC',
+                legend_title_font_color='#FFFDFD',
+                hovermode='closest'
+                ) 
+    return fig
+
+@app.callback(Output('figContour2D', 'figure'),
+              [State('userData', 'data'),
+               Input('userXContour2D', 'value'),
+               Input('userYContour2D', 'value')
+               ])
+def updateContour2D(df2, x, y):
+    df = pd.read_json(df2, orient='split')
+    fig = go.Figure(go.Histogram2dContour(x = df[x],y = df[y]))
+    fig.layout.xaxis.fixedrange = True
+    fig.layout.yaxis.fixedrange = True
+    fig.update_yaxes(automargin=True)
+    fig.update_xaxes(automargin=True)
+    fig.update_layout(
+                yaxis_visible = False,
+                xaxis_title=x,
+                autosize=True,
                 template='cyborg',
                 paper_bgcolor='#060606',
                 plot_bgcolor='#060606',
@@ -549,6 +630,7 @@ def updateBar(df2, x, y, filters):
                 xaxis_title=x,
                 paper_bgcolor='#060606',
                 plot_bgcolor='#060606',
+                autosize=True,
                 template='cyborg',
                 hoverlabel=dict(bgcolor='white', font_color='black', font_size=18),
                 font_family = 'Montserrat, sans-serif',
@@ -576,6 +658,7 @@ def updatePie(df2, x, filters):
         fig.update_layout(
                     xaxis_title=x,
                     paper_bgcolor='#060606',
+                    autosize=True,
                     template='cyborg',
                     plot_bgcolor='#060606',
                     hoverlabel=dict(bgcolor='white', font_color='black', font_size=18),
@@ -608,6 +691,7 @@ def updateHist(df2, x, filters):
     fig.update_layout(
                 xaxis_title=x,
                 paper_bgcolor='#060606',
+                autosize=True,
                 template='cyborg',
                 hoverlabel=dict(bgcolor='white', font_color='black', font_size=18),
                 plot_bgcolor='#060606',
@@ -643,6 +727,7 @@ def updateScatter(df2, x, y, filters):
                 xaxis_title=x,
                 hoverlabel=dict(bgcolor='white', font_color='black', font_size=18),
                 yaxis_title=y,
+                autosize=True,
                 template='cyborg',
                 paper_bgcolor='#060606',
                 plot_bgcolor='#060606',
@@ -677,10 +762,67 @@ def updateScatter3D(df2, x, y, z, filters):
     fig.layout.xaxis.fixedrange = True
     fig.layout.yaxis.fixedrange = True
     fig.update_layout(
-                xaxis_title=x,
                 hoverlabel=dict(bgcolor='white', font_color='black', font_size=18),
                 scene=dict(xaxis_title=x,yaxis_title=y,zaxis_title=z),
                 template='cyborg',
+                autosize=True,
+                paper_bgcolor='#060606',
+                plot_bgcolor='#060606',
+                font_family = 'Montserrat, sans-serif',
+                font_color='#FCFCFC',
+                legend_title_font_color='#FFFDFD',
+                hovermode='closest'
+                ) 
+    return fig
+
+@app.callback(Output('figSurface3D', 'figure'),
+              [State('userData', 'data'),
+               Input('navFig', 'value')])
+def updateSurface3D(df2, x):
+    if x == 'figSurface3D':
+        df = pd.read_json(df2, orient='split')
+        fig = go.Figure(go.Surface(z=df._get_numeric_data()))
+        fig.update_yaxes(automargin=True)
+        fig.update_xaxes(automargin=True)
+        fig.layout.xaxis.fixedrange = True
+        fig.layout.yaxis.fixedrange = True
+        fig.update_traces(contours_z=dict(show=True, usecolormap=True,
+                                  highlightcolor="limegreen", project_z=True))
+        fig.update_layout(
+                    hoverlabel=dict(bgcolor='white', font_color='black', font_size=18),
+                    template='cyborg',
+                    scene=dict(xaxis_title='',yaxis_title='',zaxis_title=''),
+                    autosize=True,
+                    hovermode=False,
+                    paper_bgcolor='#060606',
+                    scene_camera_eye=dict(x=1.87, y=0.88, z=-0.64),
+                    plot_bgcolor='#060606',
+                    font_family = 'Montserrat, sans-serif',
+                    font_color='#FCFCFC',
+                    legend_title_font_color='#FFFDFD',
+                    ) 
+        return fig
+    else:
+        raise PreventUpdate
+
+@app.callback(Output('figMesh3D', 'figure'),
+              [State('userData', 'data'),
+               Input('userXMesh3D', 'value'),
+               Input('userYMesh3D', 'value'),
+               Input('userZMesh3D', 'value')])
+def updateMesh3D(df2, x, y, z):
+    df = pd.read_json(df2, orient='split')
+    fig = go.Figure()
+    fig.add_trace(go.Mesh3d(x=df[x], y=df[y], z=df[z], opacity=.5))
+    fig.update_yaxes(automargin=True)
+    fig.update_xaxes(automargin=True)
+    fig.layout.xaxis.fixedrange = True
+    fig.layout.yaxis.fixedrange = True
+    fig.update_layout(
+                hoverlabel=dict(bgcolor='white', font_color='black', font_size=18),
+                scene=dict(xaxis_title=x,yaxis_title=y,zaxis_title=z),
+                template='cyborg',
+                autosize=True,
                 paper_bgcolor='#060606',
                 plot_bgcolor='#060606',
                 font_family = 'Montserrat, sans-serif',
@@ -716,6 +858,7 @@ def updateLine(df2, x, y, filters):
     fig.update_layout(
                 xaxis_title=x,
                 yaxis_title=y,
+                autosize=True,
                 hoverlabel=dict(bgcolor='white', font_color='black', font_size=18),
                 paper_bgcolor='#060606',
                 plot_bgcolor='#060606',
@@ -756,6 +899,7 @@ def updateLine3D(df2, x, y, z, filters):
                 hoverlabel=dict(bgcolor='white', font_color='black', font_size=18),
                 paper_bgcolor='#060606',
                 plot_bgcolor='#060606',
+                autosize=True,
                 font_family = 'Montserrat, sans-serif',
                 font_color='#FCFCFC',
                 template='cyborg',
@@ -839,6 +983,7 @@ def updateFitFigure(df2, x, y, transformation, btn, TrainOrTest, xtest):
                     paper_bgcolor='#060606',
                     plot_bgcolor='#060606',
                     template='cyborg',
+                    autosize=True,
                     font_family = 'Montserrat, sans-serif',
                     font_color='#FCFCFC',
                     title_font_family='Arial, Helvetica, sans-serif',
@@ -904,6 +1049,7 @@ def updateFitFigure3D(df2, x, z, y, transformation, btn, TrainOrTest, xtest):
                     paper_bgcolor='#060606',
                     plot_bgcolor='#060606',
                     template='cyborg',
+                    autosize=True,
                     font_family = 'Montserrat, sans-serif',
                     font_color='#FCFCFC',
                     title_font_family='Arial, Helvetica, sans-serif',
@@ -983,8 +1129,7 @@ def updateCorr(df2, nav, group, value):
             fig.add_trace(go.Heatmap(z=corr.values,
                     x=corr.index.values,
                     y=corr.columns.values))
-        fig.update_layout(paper_bgcolor='#060606',
-                            hoverlabel=dict(bgcolor='white', font_color='black', font_size=18),
+        fig.update_layout(paper_bgcolor='#060606',autosize=True,hoverlabel=dict(bgcolor='white', font_color='black', font_size=18),
                             font_family = 'Montserrat, sans-serif',
                             font_color='#FCFCFC')
         fig.update_yaxes(automargin=True)
@@ -1035,10 +1180,16 @@ def update_vmr(val):
 def update_user_choice(val):
     if val == 'figScatter':
         return cardScatter
-    if val == 'figScatter3D':
+    elif val == 'figScatter3D':
         return cardScatter3D
+    elif val == 'figSurface3D':
+        return cardSurface3D
     elif val == 'fig2D':
         return card2D
+    elif val == 'figContour2D':
+        return cardContour2D
+    elif val == 'figMesh':
+        return cardMesh3D
     elif val == 'figLine':
         return cardLine
     elif val == 'figLine3D':

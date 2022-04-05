@@ -1016,19 +1016,19 @@ def updateFitFigure3D(df2, x, z, y, transformation, btn, TrainOrTest, xtest):
             elif str(TrainOrTest) == 'test':
                 df = pd.read_json(xtest)
             if transformation == 'standardize':
-                fig.add_trace(go.Scatter3d(x=Standardize(df.sort_values(by=x)[x].values), y=df.sort_values(by=x)[z].values, z=df.sort_values(by=x)[y].values,
+                fig.add_trace(go.Scatter3d(x=Standardize(df.sort_values(by=x)[x].values), y=Standardize(df.sort_values(by=x)[z].values), z=df.sort_values(by=x)[y].values,
                                 mode='markers',
                                 marker=dict(size=5),
                                 name=x))
-                fig.add_trace(go.Scatter3d(x=Standardize(df.sort_values(by=x)[x].values), y=df.sort_values(by=x)[z].values, z=df.sort_values(by=x)['userYhat'].values,
+                fig.add_trace(go.Scatter3d(x=Standardize(df.sort_values(by=x)[x].values), y=Standardize(df.sort_values(by=x)[z].values), z=df.sort_values(by=x)['userYhat'].values,
                                 mode='lines',
                                 name='OLS Best Fit'))
             elif transformation == 'minmax':
-                fig.add_trace(go.Scatter3d(x=MinMax(df.sort_values(by=x)[x].values), y=df.sort_values(by=x)[z].values, z=df.sort_values(by=x)[y].values,
+                fig.add_trace(go.Scatter3d(x=MinMax(df.sort_values(by=x)[x].values), y=MinMax(df.sort_values(by=x)[z].values), z=df.sort_values(by=x)[y].values,
                                     mode='markers',
                                     marker=dict(size=5),
                                     name=x))
-                fig.add_trace(go.Scatter3d(x=MinMax(df.sort_values(by=x)[x].values), y=df.sort_values(by=x)[z].values, z=df.sort_values(by=x)['userYhat'].values,
+                fig.add_trace(go.Scatter3d(x=MinMax(df.sort_values(by=x)[x].values), y=MinMax(df.sort_values(by=x)[z].values), z=df.sort_values(by=x)['userYhat'].values,
                                     mode='lines',
                                     name='OLS Best Fit'))   
             else:

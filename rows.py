@@ -93,6 +93,7 @@ rowFig = dbc.Container(
                 {'label': 'Distribution Plot', 'value': 'figDist'},
                 {'label': 'Line Plot', 'value': 'figLine'},
                 {'label': 'Pie Chart', 'value': 'figPie'},
+                {'label': 'Scatter Matrix', 'value': 'figMatrix'},
                 {'label': 'Box Plot', 'value': 'figBox'},
                 {'label': 'Histogram', 'value': 'figHist'},
                 {'label': '2D Contour', 'value': 'figContour2D'},

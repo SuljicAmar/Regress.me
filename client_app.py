@@ -34,6 +34,7 @@ app.layout = html.Div(children=
                           dcc.Store(id='userTestResidual'),
                           dcc.Store(id='userTestPred'),
                           dcc.Store(id='userTestX'),
+                          dcc.Store(id='userCoefficients'),
                           dbc.Row(
                               [
                                   dbc.Col(
@@ -84,6 +85,9 @@ def parse_data(contents, filename):
                ], prevent_initial_call=True)
 def updateData(contents, filename):
     try:
+        f = open('cnt.txt', 'a')
+        f.write('\n1')
+        f.close()
         return [parse_data(contents, filename).dropna().to_json(date_format='iso', orient='split'), False, False, True, 'Refresh to upload a new dataset', 'tabFigsTab']
     except Exception as exception:
         print(exception)
@@ -138,7 +142,7 @@ def updateRadioIV3D(df2, y, x, btn):
             df = pd.read_json(df2, orient='split')
             numeric_col = df.drop(columns = [y])[x]._get_numeric_data().columns
             temp = [{'label': str(i), 'value': str(i)} for i in numeric_col]
-            return temp, numeric_col[0], temp, numeric_col[0]
+            return temp, numeric_col[0], temp, numeric_col[1]
         except Exception as exception:
             print(exception)
     else:
@@ -189,6 +193,25 @@ def updateBarOptions(df2, value):
             if is_datetime(df[i]):
                 temp.append({'label': str(i), 'value': str(i)})                
         return temp3, temp3, df.columns[0], temp3, df.columns[0]
+    else:
+        raise PreventUpdate
+
+@app.callback([Output('radioMatrix', 'options'),
+               Output('radioMatrix', 'value'),
+               Output('filterMatrix', 'options')],
+              [State('userData', 'data'),
+               Input('navFig', 'value')
+               ])
+def updateFilterMatrix(df2, value):
+    if value == 'figMatrix':
+        try:
+            df = pd.read_json(df2, orient='split')
+            numeric_col = df._get_numeric_data().columns
+            temp = [{'label': str(i), 'value': str(i)} for i in numeric_col]
+            temp2 = [{'label': str(i), 'value': str(i)} for i in df.columns if i not in numeric_col]
+            return [temp, [numeric_col[0]], temp2] 
+        except Exception as exception:
+            print(exception)
     else:
         raise PreventUpdate
 
@@ -247,7 +270,7 @@ def updatePieOptions(df2, value):
                Input('userXBox', 'value'),
                Input('filterBox', 'value')
                ])
-def updateBox (df2, y, x, filters):
+def updateBox(df2, y, x, filters):
     df = pd.read_json(df2, orient='split')
     fig = go.Figure()    
     if y:
@@ -275,6 +298,31 @@ def updateBox (df2, y, x, filters):
                 ) 
     return fig
 
+@app.callback(Output('figMatrix', 'figure'),
+              [State('userData', 'data'),
+               Input('radioMatrix', 'value'),
+               Input('filterMatrix', 'value')
+               ])
+def updateMatrix(df2, x, filters):
+    df = pd.read_json(df2, orient='split')
+    fig = go.Figure()    
+    if x:
+        if filters:
+            fig = px.scatter_matrix(df,dimensions=x,color=filters)
+        else:
+            fig = px.scatter_matrix(df,dimensions=x)
+    fig.layout.xaxis.fixedrange = True
+    fig.layout.yaxis.fixedrange = True
+    fig.update_layout(
+                paper_bgcolor='#060606',
+                template='cyborg',
+                plot_bgcolor='#060606',
+                hoverlabel=dict(bgcolor='white', font_color='black', font_size=18),
+                font_family = 'Montserrat, sans-serif',
+                font_color='#FCFCFC',
+                legend_title_font_color='#FFFDFD',
+                ) 
+    return fig
 
 @app.callback([Output('filterBox', 'options'),
                Output('userXBox', 'options'),
@@ -332,7 +380,9 @@ def updateCorrOptions(df2, x):
                Output('userXScatter', 'value'),
                Output('userYScatter', 'options'),
                Output('userYScatter', 'value'),
-               Output('filterScatter', 'options')],
+               Output('filterScatter', 'options'),
+               Output('filterScatterRow', 'options'),
+               Output('filterScatterCol', 'options')],
               [State('userData', 'data'),
                Input('navFig', 'value')
                ])
@@ -349,7 +399,7 @@ def updateScatterChoice(df2, x):
                 temp.append({'label': str(i), 'value': str(i)})    
         for i in numeric_col:
             temp.append({'label': str(i), 'value': str(i)})
-        return [temp, str(numeric_col[0]), temp, str(numeric_col[0]), temp2]
+        return [temp, str(numeric_col[0]), temp, str(numeric_col[0]), temp2, temp2, temp2]
     else:
         raise PreventUpdate
 
@@ -706,19 +756,31 @@ def updateHist(df2, x, filters):
               [State('userData', 'data'),
                Input('userXScatter', 'value'),
                Input('userYScatter', 'value'),
-               Input('filterScatter', 'value')])
-def updateScatter(df2, x, y, filters):
+               Input('filterScatter', 'value'),
+               Input('filterScatterRow', 'value'),
+               Input('filterScatterCol', 'value')])
+def updateScatter(df2, x, y, filters, row, col):
     df = pd.read_json(df2, orient='split')
     fig = go.Figure()
     if filters in df.columns:
-        for i in df[filters].unique():
-            fig.add_scatter(x=df.loc[df[filters] == i].sort_values(by=x)[x].values, y=df.loc[df[filters] == i].sort_values(by=x)[y].values,
-                                        mode='markers',
-                                        name=i)
+        if row:           
+            if col:
+                fig = px.scatter(df.sort_values(by=x), x=x, y=y, color=filters, facet_row=row, facet_col=col)
+            else:
+                fig = px.scatter(df.sort_values(by=x), x=x, y=y, color=filters, facet_row=row)
+        else:
+            fig = px.scatter(df.sort_values(by=x), x=x, y=y, color=filters)
     else:
-        fig.add_trace(go.Scattergl(x=df.sort_values(by=x)[x].values, y=df.sort_values(by=x)[y].values,
-                                    mode='markers',
-                                    name=x))
+        if row:
+            if col:
+                fig = px.scatter(df.sort_values(by=x), x=x, y=y, facet_col=col)
+            else:
+                fig = px.scatter(df.sort_values(by=x), x=x, y=y, facet_row=row)
+        else:
+            if col:
+                fig = px.scatter(df.sort_values(by=x), x=x, y=y, facet_col=col)
+            else:
+                fig = px.scatter(df.sort_values(by=x), x=x, y=y)
     fig.update_yaxes(automargin=True)
     fig.update_xaxes(automargin=True)
     fig.layout.xaxis.fixedrange = True
@@ -917,7 +979,7 @@ def updateLine3D(df2, x, y, z, filters):
               State('radioTransform', 'value'),
               Input('btnFit', 'n_clicks'),
               Input('radioTrainOrTest', 'value'),
-              Input('userTestX', 'data'),
+              Input('userTestX', 'data')
                ], prevent_initial_call=True)
 def updateFitFigure(df2, x, y, transformation, btn, TrainOrTest, xtest):
     fig = go.Figure()
@@ -1006,16 +1068,20 @@ def updateFitFigure(df2, x, y, transformation, btn, TrainOrTest, xtest):
               Input('btnFit', 'n_clicks'),
               Input('radioTrainOrTest', 'value'),
               Input('userTestX', 'data'),
+              Input('userCoefficients', 'data'),
                ], prevent_initial_call=True)
-def updateFitFigure3D(df2, x, z, y, transformation, btn, TrainOrTest, xtest):
+def updateFitFigure3D(df2, x, z, y, transformation, btn, TrainOrTest, xtest, coef):
     fig = go.Figure()
     if btn:  
         if x:
+            mesh_size = .02
             if str(TrainOrTest) == 'train':
                 df = pd.read_json(df2)
             elif str(TrainOrTest) == 'test':
                 df = pd.read_json(xtest)
+            betas = pd.read_json(coef)
             if transformation == 'standardize':
+                temp_df = Standardize(df, True)
                 fig.add_trace(go.Scatter3d(x=Standardize(df.sort_values(by=x)[x].values), y=Standardize(df.sort_values(by=x)[z].values), z=df.sort_values(by=x)[y].values,
                                 mode='markers',
                                 marker=dict(size=5),
@@ -1023,14 +1089,33 @@ def updateFitFigure3D(df2, x, z, y, transformation, btn, TrainOrTest, xtest):
                 fig.add_trace(go.Scatter3d(x=Standardize(df.sort_values(by=x)[x].values), y=Standardize(df.sort_values(by=x)[z].values), z=df.sort_values(by=x)['userYhat'].values,
                                 mode='lines',
                                 name='OLS Best Fit'))
+#                x_min, x_max = temp_df[x].min(), temp_df[x].max()
+#                y_min, y_max = temp_df['sepal_width'].min(), temp_df['sepal_width'].max()
+#                s_min, s_max = temp_df['sepal_width'].min(), temp_df['sepal_width'].max()
+#                xrange = np.arange(x_min, x_max, mesh_size)
+#                yrange = np.arange(y_min, y_max, mesh_size)
+#                srange = np.arange(s_min, s_max, mesh_size)
+#                xx, yy, ss = np.meshgrid(xrange, yrange, srange)               
+#                predX = np.dot(np.c_[[1 for i in range(xx.ravel().shape[0])], xx.ravel(), yy.ravel(),  ss.ravel()], betas.T.to_numpy())
+#                pred = predX.reshape(xx.shape)
+#                fig.add_trace(go.Surface(x=xrange, y=yrange, z=pred, name='pred_surface'))
             elif transformation == 'minmax':
+                temp_df = MinMax(df, True)
                 fig.add_trace(go.Scatter3d(x=MinMax(df.sort_values(by=x)[x].values), y=MinMax(df.sort_values(by=x)[z].values), z=df.sort_values(by=x)[y].values,
                                     mode='markers',
                                     marker=dict(size=5),
                                     name=x))
                 fig.add_trace(go.Scatter3d(x=MinMax(df.sort_values(by=x)[x].values), y=MinMax(df.sort_values(by=x)[z].values), z=df.sort_values(by=x)['userYhat'].values,
                                     mode='lines',
-                                    name='OLS Best Fit'))   
+                                    name='OLS Best Fit'))                
+#                x_min, x_max = 0, 1
+#                y_min, y_max = 0, 1
+#                xrange = np.arange(x_min, x_max, mesh_size)
+#                yrange = np.arange(y_min, y_max, mesh_size)
+#                xx, yy = np.meshgrid(xrange, yrange)               
+#                predX = np.dot(np.c_[[1 for i in range(xx.ravel().shape[0])], xx.ravel(), yy.ravel()], betas[['intercept',x,z]].T.to_numpy())
+#                pred = predX.reshape(xx.shape)
+#                fig.add_trace(go.Surface(x=xrange, y=yrange, z=pred, name='pred_surface'))
             else:
                 fig.add_trace(go.Scatter3d(x=df[x], y=df[z], z=df[y].values,
                                     mode='markers',
@@ -1039,6 +1124,14 @@ def updateFitFigure3D(df2, x, z, y, transformation, btn, TrainOrTest, xtest):
                 fig.add_trace(go.Scatter3d(x=df.sort_values(by=x)[x], y=df.sort_values(by=x)[z], z=df.sort_values(by=x)['userYhat'].values,
                                     mode='lines',
                                     name='OLS Best Fit'))
+#                x_min, x_max = df[x].min(), df[x].max()
+#                y_min, y_max = df[z].min(), df[z].max()
+#                xrange = np.arange(x_min, x_max, mesh_size)
+#                yrange = np.arange(y_min, y_max, mesh_size)
+#                xx, yy = np.meshgrid(xrange, yrange)               
+#                predX = np.dot(np.c_[[1 for i in range(xx.ravel().shape[0])], xx.ravel(), yy.ravel()], betas[['intercept',x,z]].T.to_numpy())
+#                pred = predX.reshape(xx.shape)
+#                fig.add_trace(go.Surface(x=xrange, y=yrange, z=pred, name='pred_surface'))
             fig.layout.xaxis.fixedrange = True
             fig.update_yaxes(automargin=True)
             fig.update_xaxes(automargin=True)
@@ -1054,8 +1147,7 @@ def updateFitFigure3D(df2, x, z, y, transformation, btn, TrainOrTest, xtest):
                     font_color='#FCFCFC',
                     title_font_family='Arial, Helvetica, sans-serif',
                     title_font_color='#FCFCFC',
-                    legend_title_font_color='#FFFDFD',
-                    hovermode=False
+                    legend_title_font_color='#FFFDFD'
                     )           
             return fig
         else:
@@ -1186,6 +1278,8 @@ def update_user_choice(val):
         return cardSurface3D
     elif val == 'fig2D':
         return card2D
+    elif val == 'figMatrix':
+        return cardMatrix
     elif val == 'figContour2D':
         return cardContour2D
     elif val == 'figMesh':
@@ -1218,7 +1312,8 @@ def update_user_choice(val):
                Output('tabFitTest', 'children'),
                Output('userTestResidual', 'data'),
                Output('userTestPred', 'data'),
-               Output('userTestX', 'data')
+               Output('userTestX', 'data'),
+               Output('userCoefficients', 'data')
                ],
               [
                State('userData', 'data'),
@@ -1233,6 +1328,10 @@ def run(df2, y, x, transformation, btn, prcnt):
         tempdf = pd.read_json(df2, orient='split').dropna()._get_numeric_data()
         ols = OLS()
         dct = pd.DataFrame()
+        dct2 = pd.DataFrame()
+        f = open('cnt.txt', 'a')
+        f.write('\n2')
+        f.close()
         if transformation == 'standardize':
             df = Standardize(tempdf, True)
             if float(prcnt) > 0:
@@ -1276,9 +1375,11 @@ def run(df2, y, x, transformation, btn, prcnt):
                 test = ols.test(df[x].head(1).values, df[y].head(1).to_numpy())
                 X_test = df[x].head(1)
         dct['intercept'] = [str(round(ols.beta[0], 3))]
+        dct2['intercept'] = [str(ols.beta[0])]
         cnt = 1
         for i in df.drop(columns=[y])[x]._get_numeric_data().columns:
-            dct[str(i)] = [str(round(ols.beta[cnt], 3))]       
+            dct[str(i)] = [str(round(ols.beta[cnt], 3))]    
+            dct2[str(i)] = [str(ols.beta[cnt])]    
             cnt += 1   
         df['userYhat'] = ols.yhat
         df['residuals'] = ols.residuals
@@ -1359,7 +1460,7 @@ def run(df2, y, x, transformation, btn, prcnt):
             }
                 ]
             )
-        return [tabfit, df.to_json(), tabstats, False, False, testtab, test[0], test[5], X_test.to_json()]
+        return [tabfit, df.to_json(), tabstats, False, False, testtab, test[0], test[5], X_test.to_json(), dct2.to_json()]
     else:
         raise PreventUpdate
 

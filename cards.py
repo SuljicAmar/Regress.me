@@ -132,6 +132,10 @@ cardScatter = dbc.Card(dbc.CardBody(
         dcc.Graph(id='figScatter',  config={'displayModeBar': False}),
         dbc.Label('Filter', className='mt-3', style={'color': '#FFFDFD', }), 
         dcc.Dropdown(id='filterScatter', style={'color':'#FFFDFD', 'background-color': '#060606', }),
+        dbc.Label('Row', className='mt-3', style={'color': '#FFFDFD', }), 
+        dcc.Dropdown(id='filterScatterRow', style={'color':'#FFFDFD', 'background-color': '#060606', }),
+        dbc.Label('Column', className='mt-3', style={'color': '#FFFDFD', }), 
+        dcc.Dropdown(id='filterScatterCol', style={'color':'#FFFDFD', 'background-color': '#060606', }),
         ]
     ),  style={'background-color': '#060606', }
 )
@@ -223,6 +227,19 @@ cardBar = dbc.Card(dbc.CardBody(
         dcc.Graph(id='figBar',  config={'displayModeBar': False}),
         dbc.Label('Filter', className='mt-3', style={'color': '#FFFDFD', }), 
         dcc.Dropdown(id='filterBar', style={'color':'#FCFCFC', 'background-color': '#060606', }),
+        ]
+    ),  style={'background-color': '#060606', }
+)
+
+cardMatrix = dbc.Card(dbc.CardBody(
+    [
+        dbc.Label('Variables for Plot', className='mt-3', style={'color': '#FFFDFD', }), 
+        dcc.Checklist(
+        id='radioMatrix',style={'color':'#FFFDFD', 'background-color': '#060606'},
+        ),
+        dcc.Graph(id='figMatrix',  config={'displayModeBar': False}),
+        dbc.Label('Filter', className='mt-3', style={'color': '#FFFDFD', }), 
+        dcc.Dropdown(id='filterMatrix', style={'color':'#FCFCFC', 'background-color': '#060606', }),
         ]
     ),  style={'background-color': '#060606', }
 )

@@ -395,11 +395,8 @@ def updateScatterChoice(df2, x):
         for i in df.columns:
             if i not in numeric_col:
                 temp2.append({'label': str(i), 'value': str(i)})
-            if is_datetime(df[i]):
-                temp.append({'label': str(i), 'value': str(i)})    
-        for i in numeric_col:
-            temp.append({'label': str(i), 'value': str(i)})
-        return [temp, str(numeric_col[0]), temp, str(numeric_col[0]), temp2, temp2, temp2]
+            temp.append({'label': str(i), 'value': str(i)})    
+        return [temp, str(numeric_col[0]), temp, str(numeric_col[0]), temp, temp2, temp2]
     else:
         raise PreventUpdate
 

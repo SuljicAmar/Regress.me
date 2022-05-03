@@ -25,5 +25,3 @@ Pull requests are welcome. For major changes, please open an issue first to disc
 
 Originally, I started this as a passion project which is why OLS is done by hand, but given popularity, there is no reason other models can't be implemented using libraries. 
 
-## License
-[MIT](https://choosealicense.com/licenses/mit/)

@@ -37,7 +37,7 @@ app.layout = html.Div(children=
                           dcc.Store(id='userCoefficients'),
                           dbc.Row(
                               [
-                                  dbc.Col(
+                                  
                                       html.Div(
                                           dbc.Tabs(
                                               [
@@ -46,7 +46,7 @@ app.layout = html.Div(children=
                                                   dbc.Tab(rowFit, id='tabModel', label='Model', disabled=True,active_label_style={'background-color': '#2a9fd6'}, tab_style={'margin': 'auto'}),
                                                   dbc.Tab(rowViz, id='tabViz', label='Vizualize Model', disabled=True,active_label_style={'background-color': '#2a9fd6'}, tab_style={'margin': 'auto'}),
                                                   ], id='tabs', style={}, className='d-flex justify-content-center'),
-                                          ), width=12),
+                                          )
                                   ]
                               ),
                           ]
@@ -281,8 +281,8 @@ def updateBox(df2, y, x, filters):
                 fig = px.box(df, x=x, y=y)
         else:
             fig = px.box(df, y=y)
-    fig.layout.xaxis.fixedrange = True
-    fig.layout.yaxis.fixedrange = True
+    fig.layout.xaxis.fixedrange = False
+    fig.layout.yaxis.fixedrange = False
     fig.update_layout(
                 xaxis_title=x,
                 paper_bgcolor='#060606',
@@ -311,8 +311,8 @@ def updateMatrix(df2, x, filters):
             fig = px.scatter_matrix(df,dimensions=x,color=filters)
         else:
             fig = px.scatter_matrix(df,dimensions=x)
-    fig.layout.xaxis.fixedrange = True
-    fig.layout.yaxis.fixedrange = True
+    fig.layout.xaxis.fixedrange = False
+    fig.layout.yaxis.fixedrange = False
     fig.update_layout(
                 paper_bgcolor='#060606',
                 template='cyborg',
@@ -577,8 +577,8 @@ def updateDist(df2, x, filters, norm):
         else:
             fig = ff.create_distplot([df[x].values], [x], show_hist=False, show_rug=False)
     fig.layout.hovermode = False
-    fig.layout.xaxis.fixedrange = True
-    fig.layout.yaxis.fixedrange = True
+    fig.layout.xaxis.fixedrange = False
+    fig.layout.yaxis.fixedrange = False
     fig.update_yaxes(automargin=True)
     fig.update_xaxes(automargin=True)
     fig.update_layout(
@@ -607,8 +607,8 @@ def update2D(df2, x, y, r, c):
         fig =  px.density_heatmap(df, x=x, y=y, facet_row=r, facet_col=c)
     else:
         fig = px.density_heatmap(df, x=x, y=y)
-    fig.layout.xaxis.fixedrange = True
-    fig.layout.yaxis.fixedrange = True
+    fig.layout.xaxis.fixedrange = False
+    fig.layout.yaxis.fixedrange = False
     fig.update_yaxes(automargin=True)
     fig.update_xaxes(automargin=True)
     fig.update_layout(
@@ -636,8 +636,8 @@ def update2D(df2, x, y, r, c):
 def updateContour2D(df2, x, y):
     df = pd.read_json(df2, orient='split')
     fig = go.Figure(go.Histogram2dContour(x = df[x],y = df[y]))
-    fig.layout.xaxis.fixedrange = True
-    fig.layout.yaxis.fixedrange = True
+    fig.layout.xaxis.fixedrange = False
+    fig.layout.yaxis.fixedrange = False
     fig.update_yaxes(automargin=True)
     fig.update_xaxes(automargin=True)
     fig.update_layout(
@@ -669,8 +669,8 @@ def updateBar(df2, x, y, filters):
         fig =  px.bar(df, x=x, y=y, color=filters)
     else:
         fig = px.bar(df, x=x, y=y)
-    fig.layout.xaxis.fixedrange = True
-    fig.layout.yaxis.fixedrange = True
+    fig.layout.xaxis.fixedrange = False
+    fig.layout.yaxis.fixedrange = False
     fig.update_yaxes(automargin=True)
     fig.update_xaxes(automargin=True)
     fig.update_layout(
@@ -700,8 +700,8 @@ def updatePie(df2, x, filters):
         fig = px.pie(df, values=x, names=filters)
         fig.update_yaxes(automargin=True)
         fig.update_xaxes(automargin=True)
-        fig.layout.xaxis.fixedrange = True
-        fig.layout.yaxis.fixedrange = True
+        fig.layout.xaxis.fixedrange = False
+        fig.layout.yaxis.fixedrange = False
         fig.update_layout(
                     xaxis_title=x,
                     paper_bgcolor='#060606',
@@ -733,8 +733,8 @@ def updateHist(df2, x, filters):
         fig =  px.histogram(df, x)
     fig.update_yaxes(automargin=True)
     fig.update_xaxes(automargin=True)
-    fig.layout.xaxis.fixedrange = True
-    fig.layout.yaxis.fixedrange = True
+    fig.layout.xaxis.fixedrange = False
+    fig.layout.yaxis.fixedrange = False
     fig.update_layout(
                 xaxis_title=x,
                 paper_bgcolor='#060606',
@@ -780,8 +780,8 @@ def updateScatter(df2, x, y, filters, row, col):
                 fig = px.scatter(df.sort_values(by=x), x=x, y=y)
     fig.update_yaxes(automargin=True)
     fig.update_xaxes(automargin=True)
-    fig.layout.xaxis.fixedrange = True
-    fig.layout.yaxis.fixedrange = True
+    fig.layout.xaxis.fixedrange = False
+    fig.layout.yaxis.fixedrange = False
     fig.update_layout(
                 xaxis_title=x,
                 hoverlabel=dict(bgcolor='white', font_color='black', font_size=18),
@@ -818,8 +818,8 @@ def updateScatter3D(df2, x, y, z, filters):
                                     marker=dict(size=5)))
     fig.update_yaxes(automargin=True)
     fig.update_xaxes(automargin=True)
-    fig.layout.xaxis.fixedrange = True
-    fig.layout.yaxis.fixedrange = True
+    fig.layout.xaxis.fixedrange = False
+    fig.layout.yaxis.fixedrange = False
     fig.update_layout(
                 hoverlabel=dict(bgcolor='white', font_color='black', font_size=18),
                 scene=dict(xaxis_title=x,yaxis_title=y,zaxis_title=z),
@@ -843,8 +843,8 @@ def updateSurface3D(df2, x):
         fig = go.Figure(go.Surface(z=df._get_numeric_data()))
         fig.update_yaxes(automargin=True)
         fig.update_xaxes(automargin=True)
-        fig.layout.xaxis.fixedrange = True
-        fig.layout.yaxis.fixedrange = True
+        fig.layout.xaxis.fixedrange = False
+        fig.layout.yaxis.fixedrange = False
         fig.update_traces(contours_z=dict(show=True, usecolormap=True,
                                   highlightcolor="limegreen", project_z=True))
         fig.update_layout(
@@ -875,8 +875,8 @@ def updateMesh3D(df2, x, y, z):
     fig.add_trace(go.Mesh3d(x=df[x], y=df[y], z=df[z], opacity=.5))
     fig.update_yaxes(automargin=True)
     fig.update_xaxes(automargin=True)
-    fig.layout.xaxis.fixedrange = True
-    fig.layout.yaxis.fixedrange = True
+    fig.layout.xaxis.fixedrange = False
+    fig.layout.yaxis.fixedrange = False
     fig.update_layout(
                 hoverlabel=dict(bgcolor='white', font_color='black', font_size=18),
                 scene=dict(xaxis_title=x,yaxis_title=y,zaxis_title=z),
@@ -912,8 +912,8 @@ def updateLine(df2, x, y, filters):
 
     fig.update_yaxes(automargin=True)
     fig.update_xaxes(automargin=True)
-    fig.layout.xaxis.fixedrange = True
-    fig.layout.yaxis.fixedrange = True
+    fig.layout.xaxis.fixedrange = False
+    fig.layout.yaxis.fixedrange = False
     fig.update_layout(
                 xaxis_title=x,
                 yaxis_title=y,
@@ -951,8 +951,8 @@ def updateLine3D(df2, x, y, z, filters):
                                     mode='lines'))
     fig.update_yaxes(automargin=True)
     fig.update_xaxes(automargin=True)
-    fig.layout.xaxis.fixedrange = True
-    fig.layout.yaxis.fixedrange = True
+    fig.layout.xaxis.fixedrange = False
+    fig.layout.yaxis.fixedrange = False
     fig.update_layout(
                 scene=dict(xaxis_title=x,yaxis_title=y,zaxis_title=z),
                 hoverlabel=dict(bgcolor='white', font_color='black', font_size=18),
@@ -1031,10 +1031,10 @@ def updateFitFigure(df2, x, y, transformation, btn, TrainOrTest, xtest):
                     fig.add_trace(go.Scattergl(x=df.sort_values(by=x)[x], y=df.sort_values(by=x)['userYhat'],
                                         mode='lines',
                                         name='OLS Best Fit'))
-            fig.layout.xaxis.fixedrange = True
+            fig.layout.xaxis.fixedrange = False
             fig.update_yaxes(automargin=True)
             fig.update_xaxes(automargin=True)
-            fig.layout.yaxis.fixedrange = True
+            fig.layout.yaxis.fixedrange = False
             fig.update_layout(
                     xaxis_title=x,
                     yaxis_title=y,
@@ -1129,10 +1129,10 @@ def updateFitFigure3D(df2, x, z, y, transformation, btn, TrainOrTest, xtest, coe
 #                predX = np.dot(np.c_[[1 for i in range(xx.ravel().shape[0])], xx.ravel(), yy.ravel()], betas[['intercept',x,z]].T.to_numpy())
 #                pred = predX.reshape(xx.shape)
 #                fig.add_trace(go.Surface(x=xrange, y=yrange, z=pred, name='pred_surface'))
-            fig.layout.xaxis.fixedrange = True
+            fig.layout.xaxis.fixedrange = False
             fig.update_yaxes(automargin=True)
             fig.update_xaxes(automargin=True)
-            fig.layout.yaxis.fixedrange = True
+            fig.layout.yaxis.fixedrange = False
             fig.update_layout(
                     scene=dict(xaxis_title=x,yaxis_title=z,zaxis_title=y),
                     hoverlabel=dict(bgcolor='white', font_color='black', font_size=18),
@@ -1192,8 +1192,8 @@ def updateResiduals(df2, residuals, TrainOrTest):
         fig.layout.hovermode = False
         fig.update_yaxes(automargin=True)
         fig.update_xaxes(automargin=True)
-        fig.layout.xaxis.fixedrange = True
-        fig.layout.yaxis.fixedrange = True
+        fig.layout.xaxis.fixedrange = False
+        fig.layout.yaxis.fixedrange = False
         return fig
 
 
@@ -1223,8 +1223,8 @@ def updateCorr(df2, nav, group, value):
                             font_color='#FCFCFC')
         fig.update_yaxes(automargin=True)
         fig.update_xaxes(automargin=True)
-        fig.layout.xaxis.fixedrange = True
-        fig.layout.yaxis.fixedrange = True 
+        fig.layout.xaxis.fixedrange = False
+        fig.layout.yaxis.fixedrange = False 
         return fig
     else:
         raise PreventUpdate
@@ -1257,7 +1257,17 @@ def update_vmr(val):
             print(exception)
     elif val == 'modelfit':
         try:
-            return [dbc.Row([dbc.Col(html.Div(cardFitX), width=5)], justify="center", align="center"), dbc.Row([dbc.Col(html.Div(cardScatterFit), width=12)], justify="center", align="center"), html.Hr(), dbc.Row([dbc.Col(html.Div(cardFitX3D), width=5)], justify="center", align="center"), dbc.Row([dbc.Col(html.Div(cardScatterFit3D), width=12)], justify="center", align="center")]
+            return [
+                    html.Div([
+                        html.Div(cardFitX, className = 'viz-model-radio'),
+                        html.Div(cardScatterFit, className = 'viz-model-chart'), 
+                    ], className = 'chart-and-radio'),
+                    html.Hr(), 
+                    html.Div([
+                        html.Div(cardFitX3D, className = 'viz-model-radio'), 
+                        html.Div(cardScatterFit3D, className = 'viz-model-chart')
+                    ], className = 'chart-and-radio')
+                    ]
         except Exception as exception:
             print(exception)
     else:
@@ -1395,15 +1405,15 @@ def run(df2, y, x, transformation, btn, prcnt):
         return_df['T'] = [round(i, 3) for i in ols.t]
         return_df['P value'] = [round(i, 5) for i in ols.p]
         tabfit = dash_table.DataTable(id='table_data1',export_format='csv', data=return_df.to_dict('records'), columns= [{'name': i, 'id': i} for i in return_df.columns], style_cell={'padding': '5px'}, style_header={
-        'backgroundColor': '#171717',
+        'backgroundColor': '#090909',
         'color': '#FCFCFC',
         'border': '1px solid black',
         'fontWeight': 'bold',
         'font_family': 'Arial, Helvetica, sans-serif'
             },
             style_data={
-            'backgroundColor': '#060606',
-            'color': '#FCFCFC',
+            'backgroundColor': '#191a1b',
+            'color': '#ffffff',
             'border': '1px solid black',
             'font_family': 'Arial, Helvetica, sans-serif'
             },
@@ -1416,17 +1426,17 @@ def run(df2, y, x, transformation, btn, prcnt):
                 ]
             )
         tabstats = dash_table.DataTable(id='table_data2',export_format='csv', data=stats.to_dict('records'), columns= [{'name': i, 'id': i} for i in stats.columns], style_cell={'padding': '5px'}, style_header={
-        'backgroundColor': '#171717',
+        'backgroundColor': '#090909',
         'color': '#FCFCFC',
         'border': '1px solid black',
         'fontWeight': 'bold',
         'font_family': 'Arial, Helvetica, sans-serif'
             },
             style_data={
-            'backgroundColor': '#060606',
-            'color': '#FCFCFC',
+            'backgroundColor': '#191a1b',
+            'color': '#ffffff',
             'border': '1px solid black',
-            'font_family':'Arial, Helvetica, sans-serif'
+            'font_family': 'Arial, Helvetica, sans-serif'
             },
             style_data_conditional=[
             {
@@ -1437,17 +1447,17 @@ def run(df2, y, x, transformation, btn, prcnt):
                 ]
             )
         testtab = dash_table.DataTable(id='table_data3',export_format='csv', data=stats_test.to_dict('records'), columns= [{'name': i, 'id': i} for i in stats_test.columns], style_cell={'padding': '5px'}, style_header={
-        'backgroundColor': '#171717',
+        'backgroundColor': '#090909',
         'color': '#FCFCFC',
         'border': '1px solid black',
         'fontWeight': 'bold',
         'font_family': 'Arial, Helvetica, sans-serif'
             },
             style_data={
-            'backgroundColor': '#060606',
-            'color': '#FCFCFC',
+            'backgroundColor': '#191a1b',
+            'color': '#ffffff',
             'border': '1px solid black',
-            'font_family':'Arial, Helvetica, sans-serif'
+            'font_family': 'Arial, Helvetica, sans-serif'
             },
             style_data_conditional=[
             {
@@ -1463,7 +1473,7 @@ def run(df2, y, x, transformation, btn, prcnt):
 
 
 if __name__ == '__main__':
-    app.run_server(debug=False,dev_tools_ui=False,dev_tools_props_check=False)
-    #app.run_server(debug=True)   
+    #app.run_server(debug=False,dev_tools_ui=False,dev_tools_props_check=False)
+    app.run_server(debug=True)   
 
 

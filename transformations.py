@@ -4,23 +4,29 @@ import math
 
 def Standardize(data, dataframe = False):
     if dataframe == False:
-        N = len(data)
-        u = sum(data)/N
-        standardized_data = []
-        std = StandardDeviation(data)
-        for i in data:
-            standardized_data.append((i-u)/std)
-        return standardized_data
+        if sorted(pd.Series(data).unique()) == [0, 1]:
+            return data
+        else:
+            N = len(data)
+            u = sum(data)/N
+            standardized_data = []
+            std = StandardDeviation(data)
+            for i in data:
+                standardized_data.append((i-u)/std)
+            return standardized_data
     else:
         dfs = []
         for i in data.columns:
-            N = data[i].shape[0]
-            u = data[i].sum()/N
-            standardized_data = []    
-            std = StandardDeviation(data[i].values)
-            for k in data[i].values:
-                standardized_data.append((k-u)/std)
-            dfs.append(pd.DataFrame({i: standardized_data}))
+            if sorted(data[i].unique()) == [0, 1]:
+                dfs.append(pd.DataFrame({i: data[i].values}))
+            else:
+                N = data[i].shape[0]
+                u = data[i].sum()/N
+                standardized_data = []    
+                std = StandardDeviation(data[i].values)
+                for k in data[i].values:
+                    standardized_data.append((k-u)/std)
+                dfs.append(pd.DataFrame({i: standardized_data}))
         return pd.concat(dfs, axis=1)
 
 def MinMax(data, dataframe = False):

@@ -1121,14 +1121,14 @@ def updateFitFigure3D(df2, x, z, y, transformation, btn, TrainOrTest, xtest, coe
                 fig.add_trace(go.Scatter3d(x=df.sort_values(by=x)[x], y=df.sort_values(by=x)[z], z=df.sort_values(by=x)['userYhat'].values,
                                     mode='lines',
                                     name='OLS Best Fit'))
-#                x_min, x_max = df[x].min(), df[x].max()
-#                y_min, y_max = df[z].min(), df[z].max()
-#                xrange = np.arange(x_min, x_max, mesh_size)
-#                yrange = np.arange(y_min, y_max, mesh_size)
-#                xx, yy = np.meshgrid(xrange, yrange)               
-#                predX = np.dot(np.c_[[1 for i in range(xx.ravel().shape[0])], xx.ravel(), yy.ravel()], betas[['intercept',x,z]].T.to_numpy())
-#                pred = predX.reshape(xx.shape)
-#                fig.add_trace(go.Surface(x=xrange, y=yrange, z=pred, name='pred_surface'))
+                x_min, x_max = df[x].min(), df[x].max()
+                y_min, y_max = df[z].min(), df[z].max()
+                xrange = np.arange(x_min, x_max, mesh_size)
+                yrange = np.arange(y_min, y_max, mesh_size)
+                xx, yy = np.meshgrid(xrange, yrange)               
+                predX = np.dot(np.c_[[1 for i in range(xx.ravel().shape[0])], xx.ravel(), yy.ravel()], betas[['intercept',x,z]].T.to_numpy())
+                pred = predX.reshape(xx.shape)
+                fig.add_trace(go.Surface(x=xrange, y=yrange, z=pred, name='pred_surface'))
             fig.layout.xaxis.fixedrange = False
             fig.update_yaxes(automargin=True)
             fig.update_xaxes(automargin=True)
@@ -1244,11 +1244,15 @@ def updateDescribe(df):
         raise PreventUpdate
 
 @app.callback(Output('tabPreview', 'children'),
-              [Input('userData', 'data')
+              [Input('userData', 'data'),
+               Input('btnShuffle', 'n_clicks')
                ])
-def updatePreview(df):
+def updateShuffle(df, btn):
     if df:
-        return dbc.Table.from_dataframe(pd.read_json(df, orient='split').head(10), striped=True, bordered=True, responsive=True)
+        if df and not btn:
+            return dbc.Table.from_dataframe(pd.read_json(df, orient='split').head(10), striped=True, bordered=True, responsive=True, style={'borderRadius': '15px','overflow': 'hidden'})
+        else:
+            return dbc.Table.from_dataframe(pd.read_json(df, orient='split').sample(frac=1).head(10), striped=True, bordered=True, responsive=True, style={'borderRadius': '15px','overflow': 'hidden'})
     else:
         raise PreventUpdate
 

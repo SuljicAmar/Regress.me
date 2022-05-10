@@ -54,10 +54,14 @@ cardDescribe = html.Div([
                 ], className = 'exploration-content-centered')
 
 cardPreview = html.Div([
-                    html.Div([
-                        html.Div(id='tabPreview')
-                    ], id = 'absolutely-centered')
-                ], className = 'exploration-content-centered')
+    html.Div([
+        dbc.Label('Shuffle Dataset', className='mt-3', style={'color': '#FFFDFD'}), 
+        html.Div(html.Button('Shuffle', id='btnShuffle', n_clicks=0, className='button-shuffle'), id = 'button-container'),
+        ], id = 'dropdowns'),
+    html.Div([
+        html.Div(id='tabPreview')
+        ], id = 'graph')
+    ], className = 'exploration-content')
 
 cardCorr = html.Div([
                 html.Div([

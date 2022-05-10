@@ -384,19 +384,34 @@ body .dash-dropdown .select{
 }
 
 
-.button-fit{
-    border:none;
+.button-fit {
+    border: none;
     border-radius: 30px;
     height: 40px;
     width: 20%;
     min-width: 120px;
     background-color: #2a9fd6;
-    font-size: 20px;
+    font-size: 20px;    
 }
 
 .button-fit:hover{
     box-shadow: -1px -1px 5px #2a9fd67c, 1px 1px 5px #2a9fd67c;
 }
+
+.button-shuffle {
+    border: none;
+    border-radius: 30px;
+    height: 40px;
+    width: 80%;
+    min-width: 80px;
+    background-color: #060606;
+    font-size: 15px;
+    color: #FFFFFF;
+}
+
+    .button-shuffle:hover {
+        box-shadow: -1px -1px 5px #2a9fd67c, 1px 1px 5px #2a9fd67c;
+    }
 
 
 .dash-table{

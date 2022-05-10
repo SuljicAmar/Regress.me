@@ -77,6 +77,7 @@ rowFig = html.Div([
                 dcc.Dropdown(
                 id='navFig',
                 options=[
+                {'label': 'Preview Data', 'value': 'dataPreview'},
                 {'label': 'Correlation Matrix', 'value': 'figCorr'},
                 {'label': 'Scatter Plot', 'value': 'figScatter'},
                 {'label': 'Bar Chart', 'value': 'figBar'},
@@ -100,6 +101,4 @@ rowFig = html.Div([
             html.Div(id='userFig')
         ], id = 'all_explore_content')
 
-
-#removed dbc.container
 rowHome = html.Div([html.Div(jumbotronHome)], className='Home', id = "Home_Page_Column")

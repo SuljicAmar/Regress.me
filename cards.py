@@ -53,6 +53,12 @@ cardDescribe = html.Div([
                     ], id = 'absolutely-centered')
                 ], className = 'exploration-content-centered')
 
+cardPreview = html.Div([
+                    html.Div([
+                        html.Div(id='tabPreview')
+                    ], id = 'absolutely-centered')
+                ], className = 'exploration-content-centered')
+
 cardCorr = html.Div([
                 html.Div([
                     dbc.Label('Filter', className='mt-3', style={'color': '#FFFDFD'}), 

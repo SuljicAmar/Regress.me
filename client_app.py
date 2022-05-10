@@ -1243,6 +1243,15 @@ def updateDescribe(df):
     else:
         raise PreventUpdate
 
+@app.callback(Output('tabPreview', 'children'),
+              [Input('userData', 'data')
+               ])
+def updatePreview(df):
+    if df:
+        return dbc.Table.from_dataframe(pd.read_json(df, orient='split').head(10), striped=True, bordered=True, responsive=True)
+    else:
+        raise PreventUpdate
+
 @app.callback(Output('vmr', 'children'),
               [Input('radioViz', 'value')])
 def update_vmr(val):
@@ -1309,6 +1318,8 @@ def update_user_choice(val):
         return cardPie
     elif val == 'figBox':
         return cardBox
+    elif val == 'dataPreview':
+        return cardPreview
 
 
 @app.callback([Output('tabStats', 'children'),

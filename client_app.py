@@ -1078,7 +1078,7 @@ def updateFitFigure3D(df2, x, z, y, transformation, btn, TrainOrTest, xtest, coe
                 df = pd.read_json(xtest)
             betas = pd.read_json(coef)
             if transformation == 'standardize':
-                temp_df = Standardize(df, True)
+#                temp_df = Standardize(df, True)
                 fig.add_trace(go.Scatter3d(x=Standardize(df.sort_values(by=x)[x].values), y=Standardize(df.sort_values(by=x)[z].values), z=df.sort_values(by=x)[y].values,
                                 mode='markers',
                                 marker=dict(size=5),
@@ -1097,7 +1097,7 @@ def updateFitFigure3D(df2, x, z, y, transformation, btn, TrainOrTest, xtest, coe
 #                pred = predX.reshape(xx.shape)
 #                fig.add_trace(go.Surface(x=xrange, y=yrange, z=pred, name='pred_surface'))
             elif transformation == 'minmax':
-                temp_df = MinMax(df, True)
+#                temp_df = MinMax(df, True)
                 fig.add_trace(go.Scatter3d(x=MinMax(df.sort_values(by=x)[x].values), y=MinMax(df.sort_values(by=x)[z].values), z=df.sort_values(by=x)[y].values,
                                     mode='markers',
                                     marker=dict(size=5),

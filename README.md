@@ -2,6 +2,12 @@
 
 Regress.me is an easy to use data visualization tool powered by Dash/Plotly.
 
+
+
+https://user-images.githubusercontent.com/70349769/171059057-d649a735-9b78-4ee2-9bc4-9f0ccc3dab56.mov
+
+
+
 ## Get Started
 
 Visit [Regress.me](https://regress.me) and upload a dataset to get started.

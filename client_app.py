@@ -1,4 +1,4 @@
-from flask import Flask
+from flask import Flask, request
 from dash import Input, Output, State, dcc, html, dash_table
 import dash
 from dash.exceptions import PreventUpdate
@@ -17,6 +17,10 @@ from transformations import Standardize, MinMax
 from dash_bootstrap_templates import load_figure_template
 from sklearn.model_selection import train_test_split
 from rows import *
+import requests
+from datetime import datetime
+import statsmodels.api as sm
+from sklearn.metrics import accuracy_score, precision_score, recall_score
 
 flask_app = Flask(__name__)
 flask_app.debug = False
@@ -70,7 +74,7 @@ def parse_data(contents, filename):
                 return html.Div(['There was an error processing this file.'])
             return df
         except Exception as exception:
-            print(exception)
+            return exception
     else:
         return pd.DataFrame({'x':[0,1], 'y':[1,2]})
 
@@ -85,12 +89,9 @@ def parse_data(contents, filename):
                ], prevent_initial_call=True)
 def updateData(contents, filename):
     try:
-        f = open('cnt.txt', 'a')
-        f.write('\n1')
-        f.close()
         return [parse_data(contents, filename).dropna().to_json(date_format='iso', orient='split'), False, False, True, 'Refresh to upload a new dataset', 'tabFigsTab']
     except Exception as exception:
-        print(exception)
+        return exception
 
 
 
@@ -103,7 +104,7 @@ def updateDropDV(df2):
             df = pd.read_json(df2, orient='split')
             return [{'label': str(i), 'value': str(i)} for i in df._get_numeric_data().columns]
         except Exception as exception:
-            print(exception)
+            return exception
     else:
         raise PreventUpdate
 
@@ -123,7 +124,7 @@ def updateRadioIV(df2, y, x, btn):
             temp.insert(0, {'label': 'None', 'value': 'none'})
             return temp, numeric_col[0]
         except Exception as exception:
-            print(exception)
+            return exception
     else:
         raise PreventUpdate
 
@@ -144,7 +145,7 @@ def updateRadioIV3D(df2, y, x, btn):
             temp = [{'label': str(i), 'value': str(i)} for i in numeric_col]
             return temp, numeric_col[0], temp, numeric_col[1]
         except Exception as exception:
-            print(exception)
+            return exception
     else:
         raise PreventUpdate
 
@@ -211,7 +212,7 @@ def updateFilterMatrix(df2, value):
             temp2 = [{'label': str(i), 'value': str(i)} for i in df.columns if i not in numeric_col]
             return [temp, [numeric_col[0]], temp2] 
         except Exception as exception:
-            print(exception)
+            return exception
     else:
         raise PreventUpdate
 
@@ -986,51 +987,98 @@ def updateFitFigure(df2, x, y, transformation, btn, TrainOrTest, xtest):
                 df = pd.read_json(df2)
             elif str(TrainOrTest) == 'test':
                 df = pd.read_json(xtest)
-            if transformation == 'standardize':
-                if 'none' in x:
-                    fig.add_trace(go.Scattergl(x=[i for i in range(df.shape[0])], y=df[y].values,
-                                    mode='lines',
-                                    name='True'))
-                    fig.add_trace(go.Scattergl(x=[i for i in range(df.shape[0])], y=df['userYhat'].values,
-                                    mode='lines',
-                                    name='Pred'))
-                else:
-                    fig.add_trace(go.Scattergl(x=Standardize(df.sort_values(by=x)[x].values), y=df.sort_values(by=x)[y].values,
-                                    mode='markers',
-                                    name=x))
-                    fig.add_trace(go.Scattergl(x=Standardize(df.sort_values(by=x)[x].values), y=df.sort_values(by=x)['userYhat'].values,
-                                    mode='lines',
-                                    name='OLS Best Fit'))
-            elif transformation == 'minmax':
-                if 'none' in x:
-                    fig.add_trace(go.Scattergl(x=[i for i in range(df.shape[0])], y=df[y].values,
-                                    mode='lines',
-                                    name='True'))
-                    fig.add_trace(go.Scattergl(x=[i for i in range(df.shape[0])], y=df['userYhat'].values,
-                                    mode='lines',
-                                    name='Pred'))
-                else:
-                    fig.add_trace(go.Scattergl(x=MinMax(df.sort_values(by=x)[x].values), y=df.sort_values(by=x)[y].values,
-                                        mode='markers',
-                                        name=x))
-                    fig.add_trace(go.Scattergl(x=MinMax(df.sort_values(by=x)[x].values), y=df.sort_values(by=x)['userYhat'].values,
+            if sorted(df[y].unique()) == [0, 1]:
+                if transformation == 'standardize':
+                    if 'none' in x:
+                        fig.add_trace(go.Scattergl(x=[i for i in range(df.shape[0])], y=df[y].values,
                                         mode='lines',
-                                        name='OLS Best Fit'))   
-            else:
-                if 'none' in x:
-                    fig.add_trace(go.Scattergl(x=[i for i in range(df.shape[0])], y=df[y].values,
-                                    mode='lines',
-                                    name='True'))
-                    fig.add_trace(go.Scattergl(x=[i for i in range(df.shape[0])], y=df['userYhat'].values,
-                                    mode='lines',
-                                    name='Pred'))
-                else:
-                    fig.add_trace(go.Scattergl(x=df[x], y=df[y],
+                                        name='True'))
+                        fig.add_trace(go.Scattergl(x=[i for i in range(df.shape[0])], y=df['userYhat'].values,
+                                        mode='lines',
+                                        name='Pred'))
+                    else:
+                        fig.add_trace(go.Scattergl(x=Standardize(df.sort_values(by=x)[x].values), y=df.sort_values(by=x)[y].values,
                                         mode='markers',
                                         name=x))
-                    fig.add_trace(go.Scattergl(x=df.sort_values(by=x)[x], y=df.sort_values(by=x)['userYhat'],
+                        fig.add_trace(go.Scattergl(x=Standardize(df.sort_values(by=x)[x].values), y=df.sort_values(by=x)['userYhat'].values,
+                                        mode='lines',
+                                        name='Logit Fit'))
+                elif transformation == 'minmax':
+                    if 'none' in x:
+                        fig.add_trace(go.Scattergl(x=[i for i in range(df.shape[0])], y=df[y].values,
+                                        mode='lines',
+                                        name='True'))
+                        fig.add_trace(go.Scattergl(x=[i for i in range(df.shape[0])], y=df['userYhat'].values,
+                                        mode='lines',
+                                        name='Pred'))
+                    else:
+                        fig.add_trace(go.Scattergl(x=MinMax(df.sort_values(by=x)[x].values), y=df.sort_values(by=x)[y].values,
+                                            mode='markers',
+                                            name=x))
+                        fig.add_trace(go.Scattergl(x=MinMax(df.sort_values(by=x)[x].values), y=df.sort_values(by=x)['userYhat'].values,
+                                            mode='lines',
+                                            name='Logit Fit'))   
+                else:
+                    if 'none' in x:
+                        fig.add_trace(go.Scattergl(x=[i for i in range(df.shape[0])], y=df[y].values,
+                                        mode='lines',
+                                        name='True'))
+                        fig.add_trace(go.Scattergl(x=[i for i in range(df.shape[0])], y=df['userYhat'].values,
+                                        mode='lines',
+                                        name='Pred'))
+                    else:
+                        fig.add_trace(go.Scattergl(x=df[x], y=df[y],
+                                            mode='markers',
+                                            name=x))
+                        fig.add_trace(go.Scattergl(x=df.sort_values(by=x)[x], y=df.sort_values(by=x)['userYhat'],
+                                            mode='lines',
+                                            name='Logit Fit'))
+            else:
+                if transformation == 'standardize':
+                    if 'none' in x:
+                        fig.add_trace(go.Scattergl(x=[i for i in range(df.shape[0])], y=df[y].values,
+                                        mode='lines',
+                                        name='True'))
+                        fig.add_trace(go.Scattergl(x=[i for i in range(df.shape[0])], y=df['userYhat'].values,
+                                        mode='lines',
+                                        name='Pred'))
+                    else:
+                        fig.add_trace(go.Scattergl(x=Standardize(df.sort_values(by=x)[x].values), y=df.sort_values(by=x)[y].values,
+                                        mode='markers',
+                                        name=x))
+                        fig.add_trace(go.Scattergl(x=Standardize(df.sort_values(by=x)[x].values), y=df.sort_values(by=x)['userYhat'].values,
                                         mode='lines',
                                         name='OLS Best Fit'))
+                elif transformation == 'minmax':
+                    if 'none' in x:
+                        fig.add_trace(go.Scattergl(x=[i for i in range(df.shape[0])], y=df[y].values,
+                                        mode='lines',
+                                        name='True'))
+                        fig.add_trace(go.Scattergl(x=[i for i in range(df.shape[0])], y=df['userYhat'].values,
+                                        mode='lines',
+                                        name='Pred'))
+                    else:
+                        fig.add_trace(go.Scattergl(x=MinMax(df.sort_values(by=x)[x].values), y=df.sort_values(by=x)[y].values,
+                                            mode='markers',
+                                            name=x))
+                        fig.add_trace(go.Scattergl(x=MinMax(df.sort_values(by=x)[x].values), y=df.sort_values(by=x)['userYhat'].values,
+                                            mode='lines',
+                                            name='OLS Best Fit'))   
+                else:
+                    if 'none' in x:
+                        fig.add_trace(go.Scattergl(x=[i for i in range(df.shape[0])], y=df[y].values,
+                                        mode='lines',
+                                        name='True'))
+                        fig.add_trace(go.Scattergl(x=[i for i in range(df.shape[0])], y=df['userYhat'].values,
+                                        mode='lines',
+                                        name='Pred'))
+                    else:
+                        fig.add_trace(go.Scattergl(x=df[x], y=df[y],
+                                            mode='markers',
+                                            name=x))
+                        fig.add_trace(go.Scattergl(x=df.sort_values(by=x)[x], y=df.sort_values(by=x)['userYhat'],
+                                            mode='lines',
+                                            name='OLS Best Fit'))
             fig.layout.xaxis.fixedrange = False
             fig.update_yaxes(automargin=True)
             fig.update_xaxes(automargin=True)
@@ -1071,7 +1119,7 @@ def updateFitFigure3D(df2, x, z, y, transformation, btn, TrainOrTest, xtest, coe
     fig = go.Figure()
     if btn:  
         if x:
-            mesh_size = .02
+ #           mesh_size = .02
             if str(TrainOrTest) == 'train':
                 df = pd.read_json(df2)
             elif str(TrainOrTest) == 'test':
@@ -1085,7 +1133,7 @@ def updateFitFigure3D(df2, x, z, y, transformation, btn, TrainOrTest, xtest, coe
                                 name=x))
                 fig.add_trace(go.Scatter3d(x=Standardize(df.sort_values(by=x)[x].values), y=Standardize(df.sort_values(by=x)[z].values), z=df.sort_values(by=x)['userYhat'].values,
                                 mode='lines',
-                                name='OLS Best Fit'))
+                                name='Model Fit'))
 #                x_min, x_max = temp_df[x].min(), temp_df[x].max()
 #                y_min, y_max = temp_df['sepal_width'].min(), temp_df['sepal_width'].max()
 #                s_min, s_max = temp_df['sepal_width'].min(), temp_df['sepal_width'].max()
@@ -1104,7 +1152,7 @@ def updateFitFigure3D(df2, x, z, y, transformation, btn, TrainOrTest, xtest, coe
                                     name=x))
                 fig.add_trace(go.Scatter3d(x=MinMax(df.sort_values(by=x)[x].values), y=MinMax(df.sort_values(by=x)[z].values), z=df.sort_values(by=x)['userYhat'].values,
                                     mode='lines',
-                                    name='OLS Best Fit'))                
+                                    name='Model Fit'))                
 #                x_min, x_max = 0, 1
 #                y_min, y_max = 0, 1
 #                xrange = np.arange(x_min, x_max, mesh_size)
@@ -1120,7 +1168,7 @@ def updateFitFigure3D(df2, x, z, y, transformation, btn, TrainOrTest, xtest, coe
                                     name='Sample'))
                 fig.add_trace(go.Scatter3d(x=df.sort_values(by=x)[x], y=df.sort_values(by=x)[z], z=df.sort_values(by=x)['userYhat'].values,
                                     mode='lines',
-                                    name='OLS Best Fit'))
+                                    name='Model Fit'))
                 #x_min, x_max = df[x].min(), df[x].max()
                 #y_min, y_max = df[z].min(), df[z].max()
                 #xrange = np.arange(x_min, x_max, mesh_size)
@@ -1155,26 +1203,29 @@ def updateFitFigure3D(df2, x, z, y, transformation, btn, TrainOrTest, xtest, coe
 @app.callback(Output('figResiduals', 'figure'),
               [Input('userYhat', 'data'),
                Input('userTestResidual', 'data'),
-               Input('radioTrainOrTest', 'value')
+               Input('radioTrainOrTest', 'value'),
+               State('dropDV', 'value'),
+               Input('userTestX', 'data'),
                ])
-def updateResiduals(df2, residuals, TrainOrTest):
+def updateResiduals(df2, residuals, TrainOrTest, y, test):
     if not df2:
         raise PreventUpdate
     else:
         df = pd.read_json(df2)
+        test_df = pd.read_json(test)
         fig = go.Figure()
         if TrainOrTest == 'train':
-            fig.add_trace(go.Scattergl(x=[i for i in range(df.shape[0])], y=df['residuals'],
+            fig.add_trace(go.Scattergl(x=df[y], y=df['residuals'],
                                 mode='markers',
                                 name='Residuals'))
-            fig.add_trace(go.Scattergl(x=[i for i in range(df.shape[0])], y=[i * 0 for i in range(df.shape[0])],
+            fig.add_trace(go.Scattergl(x=df[y], y=[i * 0 for i in range(df.shape[0])],
                                 mode='lines',
                                 )) 
         elif TrainOrTest == 'test':
-            fig.add_trace(go.Scattergl(x=[i for i in range(len(residuals))], y=residuals,
+            fig.add_trace(go.Scattergl(x=test_df[y], y=residuals,
                                 mode='markers',
                                 name='Residuals'))
-            fig.add_trace(go.Scattergl(x=[i for i in range(len(residuals))], y=[i * 0 for i in range(len(residuals))],
+            fig.add_trace(go.Scattergl(x=test_df[y], y=[i * 0 for i in range(len(residuals))],
                                 mode='lines',
                                 )) 
         fig.update_layout(
@@ -1243,6 +1294,7 @@ def updateDescribe(df):
     else:
         raise PreventUpdate
 
+
 @app.callback(Output('tabPreview', 'children'),
               [Input('userData', 'data'),
                Input('btnShuffle', 'n_clicks')
@@ -1257,32 +1309,43 @@ def updateShuffle(df, btn):
         raise PreventUpdate
 
 @app.callback(Output('vmr', 'children'),
-              [Input('radioViz', 'value')])
-def update_vmr(val):
-    if val == 'residuals':
-        try:
-            return [dbc.Row(
-                [
-                    dbc.Col(html.Div(cardResidual), width=12),
-                ], justify="center", align="center"
-            )]
-        except Exception as exception:
-            print(exception)
-    elif val == 'modelfit':
-        try:
-            return [
-                    html.Div([
-                        html.Div(cardFitX, className = 'viz-model-radio'),
-                        html.Div(cardScatterFit, className = 'viz-model-chart'), 
-                    ], className = 'chart-and-radio'),
-                    html.Hr(), 
-                    html.Div([
-                        html.Div(cardFitX3D, className = 'viz-model-radio'), 
-                        html.Div(cardScatterFit3D, className = 'viz-model-chart')
-                    ], className = 'chart-and-radio')
-                    ]
-        except Exception as exception:
-            print(exception)
+              [Input('radioViz', 'value'),
+               State('checkIV', 'value'),
+               Input('btnFit', 'n_clicks')], prevent_initial_call=True)
+def update_vmr(val, x, btn):
+    if btn or val:
+        if val == 'residuals':
+            try:
+                return [dbc.Row(
+                    [
+                        dbc.Col(html.Div(cardResidual), width=12),
+                    ], justify="center", align="center"
+                )]
+            except Exception as exception:
+                return exception 
+        elif val == 'modelfit':
+            try:
+                if len(x) > 1:
+                    return [
+                            html.Div([
+                                html.Div(cardFitX, className = 'viz-model-radio'),
+                                html.Div(cardScatterFit, className = 'viz-model-chart'), 
+                            ], className = 'chart-and-radio'),
+                            html.Hr(), 
+                            html.Div([
+                                html.Div(cardFitX3D, className = 'viz-model-radio'), 
+                                html.Div(cardScatterFit3D, className = 'viz-model-chart')
+                            ], className = 'chart-and-radio')
+                            ]
+                else:
+                    return [
+                            html.Div([
+                                html.Div(cardFitX, className = 'viz-model-radio'),
+                                html.Div(cardScatterFit, className = 'viz-model-chart'), 
+                            ], className = 'chart-and-radio')
+                            ]
+            except Exception as exception:
+                return exception
     else:
         raise PreventUpdate
 
@@ -1335,7 +1398,9 @@ def update_user_choice(val):
                Output('userTestResidual', 'data'),
                Output('userTestPred', 'data'),
                Output('userTestX', 'data'),
-               Output('userCoefficients', 'data')
+               Output('userCoefficients', 'data'),
+               Output('radioViz', 'options'),
+               Output('radioTrainOrTest', 'options')
                ],
               [
                State('userData', 'data'),
@@ -1343,146 +1408,316 @@ def update_user_choice(val):
                State('checkIV', 'value'),
                State('radioTransform', 'value'),
                Input('btnFit', 'n_clicks'),
-               State('testsplit', 'value')
+               State('testsplit', 'value'),
+               State('radioIntercept', 'value')
                ], prevent_initial_call=True)
-def run(df2, y, x, transformation, btn, prcnt):
+def run(df2, y, x, transformation, btn, prcnt, intercept):
     if btn:
         tempdf = pd.read_json(df2, orient='split').dropna()._get_numeric_data()
-        ols = OLS()
-        dct = pd.DataFrame()
-        dct2 = pd.DataFrame()
-        f = open('cnt.txt', 'a')
-        f.write('\n2')
-        f.close()
-        if transformation == 'standardize':
-            df = Standardize(tempdf, True)
-            if float(prcnt) > 0:
-                X_train, X_test, y_train, y_test = train_test_split(df[x], df[str(y)], test_size=float(prcnt), random_state=42)
-                ols.fit(X_train.values, y_train.to_numpy())
-                df = X_train.copy()
-                df[str(y)] = y_train
-                test = ols.test(X_test.values, y_test.to_numpy())
-                X_test[str(y)] = y_test
-                X_test['userYhat'] = test[5]
+        if sorted(tempdf[y].unique()) == [0, 1]:
+            if 'yes' in intercept:        
+                x.insert(0, 'Intercept')
+            if transformation == 'standardize':
+                df = Standardize(tempdf, True)
+                if 'yes' in intercept:
+                    df['Intercept'] = [1 for i in range(tempdf.shape[0])]
+                if float(prcnt) > 0:
+                    X_train, X_test, y_train, y_test = train_test_split(df[x], df[y], test_size=float(prcnt), random_state=42)
+                    model = sm.Logit(y_train, X_train).fit()
+                    df = X_train.copy()
+                    df[y] = y_train
+                    test_temp = model.predict(X_test)
+                    test =  np.array([1 if i > .5 else 0 for i in test_temp])
+                    X_test[y] = y_test
+                    X_test['userYhat'] = test
+                    train_pred = model.predict(X_train)
+                    train_temp =  np.array([1 if i > .5 else 0 for i in train_pred])
+                    df['userYhat'] = train_temp
+                else:
+                    model = sm.Logit(df[y], df[x]).fit()
+                    test_temp = model.predict(df[x])
+                    test =  np.array([1 if i > .5 else 0 for i in test_temp])
+                    X_test = df[x].head(1)
+            elif transformation == 'minmax':
+                df = MinMax(tempdf, True)
+                if 'yes' in intercept:
+                    df['Intercept'] = [1 for i in range(tempdf.shape[0])]
+                if float(prcnt) > 0:
+                    X_train, X_test, y_train, y_test = train_test_split(df[x], df[y], test_size=float(prcnt), random_state=42)
+                    model = sm.Logit(y_train, X_train).fit()
+                    df = X_train.copy()
+                    df[y] = y_train
+                    test_temp = model.predict(X_test)
+                    test =  np.array([1 if i > .5 else 0 for i in test_temp])
+                    X_test[y] = y_test
+                    X_test['userYhat'] = test
+                    train_pred = model.predict(X_train)
+                    train_temp =  np.array([1 if i > .5 else 0 for i in train_pred])
+                    df['userYhat'] = train_temp
+                else:
+                    model = sm.Logit(df[y], df[x]).fit()
+                    test_temp = model.predict(df[x])
+                    test =  np.array([1 if i > .5 else 0 for i in test_temp])
+                    X_test = df[x].head(1)
             else:
-                ols.fit(df[x].values, df[y].to_numpy())
-                test = ols.test(df[x].head(1).values, df[y].head(1).to_numpy())
-                X_test = df[x].head(1)
-        elif transformation == 'minmax':
-            df = MinMax(tempdf, True)
+                df = tempdf.copy()
+                if 'yes' in intercept:
+                    df['Intercept'] = [1 for i in range(tempdf.shape[0])]
+                if float(prcnt) > 0:
+                    X_train, X_test, y_train, y_test = train_test_split(df[x], df[y], test_size=float(prcnt), random_state=42)
+                    model = sm.Logit(y_train, X_train).fit()
+                    df = X_train.copy()
+                    df[y] = y_train
+                    test_temp = model.predict(X_test)
+                    test =  np.array([1 if i > .5 else 0 for i in test_temp])
+                    X_test[y] = y_test
+                    X_test['userYhat'] = test
+                    train_pred = model.predict(X_train)
+                    train_temp =  np.array([1 if i > .5 else 0 for i in train_pred])
+                    df['userYhat'] = train_temp
+                else:
+                    model = sm.Logit(df[y], df[x]).fit()          
+                    test_temp = model.predict(df[x])
+                    test =  np.array([1 if i > .5 else 0 for i in test_temp])
+                    X_test = df[x].head(1)
             if float(prcnt) > 0:
-                X_train, X_test, y_train, y_test = train_test_split(df[x], df[str(y)], test_size=float(prcnt), random_state=42)
-                ols.fit(X_train.values, y_train.to_numpy())
-                df = X_train.copy()
-                df[str(y)] = y_train
-                test = ols.test(X_test.values, y_test.to_numpy())
-                X_test[str(y)] = y_test
-                X_test['userYhat'] = test[5]
+                ac = accuracy_score(y_test, test)
+                pc = precision_score(y_test, test)
+                rc = recall_score(y_test, test)
             else:
-                ols.fit(df[x].values, df[y].to_numpy())
-                test = ols.test(df[x].head(1).values, df[y].head(1).to_numpy())
-                X_test = df[x].head(1)
-        else:
-            df = tempdf.copy()
+                ac = 0
+                pc = 0
+                rc = 0
+            
+            tst_df = pd.DataFrame({'Accuracy': [ac], 'Precision': [pc], 'Recall': [rc]})
+            fit1_df = pd.read_html(model.summary().tables[1].as_html(), header=0, index_col=0)[0].reset_index().rename({'index': 'Variable'})
+            tabfit1 = dash_table.DataTable(id='table_data1',export_format='csv', data=fit1_df.to_dict('records'), columns= [{'name': i, 'id': i} for i in fit1_df.columns], style_cell={'padding': '5px'}, style_header={
+            'backgroundColor': '#090909',
+            'color': '#FCFCFC',
+            'border': '1px solid black',
+            'fontWeight': 'bold',
+            'font_family': 'Arial, Helvetica, sans-serif'
+                },
+                style_data={
+                'backgroundColor': '#191a1b',
+                'color': '#ffffff',
+                'border': '1px solid black',
+                'font_family': 'Arial, Helvetica, sans-serif'
+                },
+                style_data_conditional=[
+                        {
+            'if': {'state': 'selected'},
+            'backgroundColor': 'inherit !important',
+            'border': 'inherit !important',
+                        }
+                    ]
+                )
+            fit2_df = pd.read_html(model.summary().tables[0].as_html(), header=0, index_col=0)[0].reset_index()
+            tabfit2 = dash_table.DataTable(id='table_data3',export_format='csv', data=fit2_df.to_dict('records'), columns= [{'name': i, 'id': i} for i in fit2_df.columns], style_cell={'padding': '5px'}, style_header={
+            'backgroundColor': '#090909',
+            'color': '#FCFCFC',
+            'border': '1px solid black',
+            'fontWeight': 'bold',
+            'font_family': 'Arial, Helvetica, sans-serif'
+                },
+                style_data={
+                'backgroundColor': '#191a1b',
+                'color': '#ffffff',
+                'border': '1px solid black',
+                'font_family': 'Arial, Helvetica, sans-serif'
+                },
+                style_data_conditional=[
+                        {
+            'if': {'state': 'selected'},
+            'backgroundColor': 'inherit !important',
+            'border': 'inherit !important',
+                        }
+                    ]
+                )
+            tabscores = dash_table.DataTable(id='table_data2',export_format='csv', data=tst_df.to_dict('records'), columns= [{'name': i, 'id': i} for i in tst_df.columns], style_cell={'padding': '5px'}, style_header={
+            'backgroundColor': '#090909',
+            'color': '#FCFCFC',
+            'border': '1px solid black',
+            'fontWeight': 'bold',
+            'font_family': 'Arial, Helvetica, sans-serif'
+                },
+                style_data={
+                'backgroundColor': '#191a1b',
+                'color': '#ffffff',
+                'border': '1px solid black',
+                'font_family': 'Arial, Helvetica, sans-serif'
+                },
+                style_data_conditional=[
+                        {
+            'if': {'state': 'selected'},
+            'backgroundColor': 'inherit !important',
+            'border': 'inherit !important',
+                        }
+                    ]
+                )
             if float(prcnt) > 0:
-                X_train, X_test, y_train, y_test = train_test_split(df[x], df[str(y)], test_size=float(prcnt), random_state=42)
-                ols.fit(X_train.values, y_train.to_numpy())
-                df = X_train.copy()
-                df[str(y)] = y_train
-                test = ols.test(X_test.values, y_test.to_numpy())
-                X_test[str(y)] = y_test
-                X_test['userYhat'] = test[5]
+                radioTrainOrTest = [{'label': 'Train', 'value': 'train'}, {'label': 'Test', 'value': 'test'}]
             else:
-                ols.fit(df[x].values, df[y].to_numpy())
-                test = ols.test(df[x].head(1).values, df[y].head(1).to_numpy())
-                X_test = df[x].head(1)
-        dct['intercept'] = [str(round(ols.beta[0], 3))]
-        dct2['intercept'] = [str(ols.beta[0])]
-        cnt = 1
-        for i in df.drop(columns=[y])[x]._get_numeric_data().columns:
-            dct[str(i)] = [str(round(ols.beta[cnt], 3))]    
-            dct2[str(i)] = [str(ols.beta[cnt])]    
-            cnt += 1   
-        df['userYhat'] = ols.yhat
-        df['residuals'] = ols.residuals
-        stats = pd.DataFrame()
-        stats_test = pd.DataFrame()
-        stats['Train R2'] = [str(round(ols.r2, 2))]
-        stats_test['Test R2'] = [str(round(test[1], 2))]
-        stats['Train Adj R2'] = [str(round(ols.adj_r2,2))]
-        stats_test['Test Adj R2'] = [str(round(test[2], 2))]
-        stats['Train MSE'] = [str(round(ols.mse,4))]
-        stats_test['Test MSE'] = [str(round(test[3], 4))]
-        stats['Train Durbin Watson'] = [str(round(ols.dw,2))]
-        stats_test['Test Durbin Watson'] = [str(round(test[4], 2))]
-        return_df = dct.T.reset_index().rename(columns={0:'Coeffecient', 'index':'Variables'})
-        return_df['Standard Error'] = [round(i, 3) for i in ols.se]
-        return_df['T'] = [round(i, 3) for i in ols.t]
-        return_df['P value'] = [round(i, 5) for i in ols.p]
-        tabfit = dash_table.DataTable(id='table_data1',export_format='csv', data=return_df.to_dict('records'), columns= [{'name': i, 'id': i} for i in return_df.columns], style_cell={'padding': '5px'}, style_header={
-        'backgroundColor': '#090909',
-        'color': '#FCFCFC',
-        'border': '1px solid black',
-        'fontWeight': 'bold',
-        'font_family': 'Arial, Helvetica, sans-serif'
-            },
-            style_data={
-            'backgroundColor': '#191a1b',
-            'color': '#ffffff',
+                radioTrainOrTest = [{'label': 'Train', 'value': 'train'}] 
+            return [tabfit1, df.to_json(), tabfit2, False, False, tabscores, pd.DataFrame({'x': [0]}).to_json(), test, X_test.to_json(), pd.read_html(model.summary().tables[1].as_html(), header=0, index_col=0)[0].to_json(), [{'label': 'Fit', 'value': 'modelfit'}], radioTrainOrTest]
+        else:          
+            ols = OLS()
+            dct = pd.DataFrame()
+            dct2 = pd.DataFrame()
+            if transformation == 'standardize':
+                df = Standardize(tempdf, True)
+                if float(prcnt) > 0:
+                    X_train, X_test, y_train, y_test = train_test_split(df[x], df[y], test_size=float(prcnt), random_state=42)
+                    if 'yes' in intercept:
+                        ols.fit(X_train.values, y_train.to_numpy(), True)
+                    else:
+                        ols.fit(X_train.values, y_train.to_numpy(), False)
+                    df = X_train.copy()
+                    df[y] = y_train
+                    test = ols.test(X_test.values, y_test.to_numpy())
+                    X_test[y] = y_test
+                    X_test['userYhat'] = test[5]
+                else:
+                    if 'yes' in intercept:
+                        ols.fit(df[x].values, df[y].to_numpy(), True)
+                    else:
+                        ols.fit(df[x].values, df[y].to_numpy(), False)                   
+                    test = ols.test(df[x].head(1).values, df[y].head(1).to_numpy())
+                    X_test = df[x].head(1)
+            elif transformation == 'minmax':
+                df = MinMax(tempdf, True)
+                if float(prcnt) > 0:
+                    X_train, X_test, y_train, y_test = train_test_split(df[x], df[y], test_size=float(prcnt), random_state=42)
+                    if 'yes' in intercept:
+                        ols.fit(X_train.values, y_train.to_numpy(), True)
+                    else:
+                        ols.fit(X_train.values, y_train.to_numpy(), False)
+                    df = X_train.copy()
+                    df[y] = y_train
+                    test = ols.test(X_test.values, y_test.to_numpy())
+                    X_test[y] = y_test
+                    X_test['userYhat'] = test[5]
+                else:
+                    if 'yes' in intercept:
+                        ols.fit(df[x].values, df[y].to_numpy(), True)
+                    else:
+                        ols.fit(df[x].values, df[y].to_numpy(), False) 
+                    test = ols.test(df[x].head(1).values, df[y].head(1).to_numpy())
+                    X_test = df[x].head(1)
+            else:
+                df = tempdf.copy()
+                if float(prcnt) > 0:
+                    X_train, X_test, y_train, y_test = train_test_split(df[x], df[y], test_size=float(prcnt), random_state=42)
+                    if 'yes' in intercept:
+                        ols.fit(X_train.values, y_train.to_numpy(), True)
+                    else:
+                        ols.fit(X_train.values, y_train.to_numpy(), False)
+                    df = X_train.copy()
+                    df[y] = y_train
+                    test = ols.test(X_test.values, y_test.to_numpy())
+                    X_test[y] = y_test
+                    X_test['userYhat'] = test[5]
+                else:
+                    if 'yes' in intercept:
+                        ols.fit(df[x].values, df[y].to_numpy(), True)
+                    else:
+                        ols.fit(df[x].values, df[y].to_numpy(), False) 
+                    test = ols.test(df[x].head(1).values, df[y].head(1).to_numpy())
+                    X_test = df[x].head(1)
+            if 'yes' in intercept:
+                dct['intercept'] = [str(round(ols.beta[0], 3))]
+                dct2['intercept'] = [str(ols.beta[0])]
+                cnt = 1
+            else:
+                cnt = 0
+            for i in df.drop(columns=[y])[x]._get_numeric_data().columns:
+                dct[str(i)] = [str(round(ols.beta[cnt], 3))]    
+                dct2[str(i)] = [str(ols.beta[cnt])]    
+                cnt += 1   
+            df['userYhat'] = ols.yhat
+            df['residuals'] = ols.residuals
+            stats = pd.DataFrame()
+            stats_test = pd.DataFrame()
+            stats['Train R2'] = [str(round(ols.r2, 2))]
+            stats_test['Test R2'] = [str(round(test[1], 2))]
+            stats['Train Adj R2'] = [str(round(ols.adj_r2,2))]
+            stats_test['Test Adj R2'] = [str(round(test[2], 2))]
+            stats['Train MSE'] = [str(round(ols.mse,4))]
+            stats_test['Test MSE'] = [str(round(test[3], 4))]
+            stats['Train Durbin Watson'] = [str(round(ols.dw,2))]
+            stats_test['Test Durbin Watson'] = [str(round(test[4], 2))]
+            return_df = dct.T.reset_index().rename(columns={0:'Coeffecient', 'index':'Variables'})
+            return_df['Standard Error'] = [round(i, 3) for i in ols.se]
+            return_df['T'] = [round(i, 3) for i in ols.t]
+            return_df['P value'] = [round(i, 5) for i in ols.p]
+            tabfit = dash_table.DataTable(id='table_data1',export_format='csv', data=return_df.to_dict('records'), columns= [{'name': i, 'id': i} for i in return_df.columns], style_cell={'padding': '5px'}, style_header={
+            'backgroundColor': '#090909',
+            'color': '#FCFCFC',
             'border': '1px solid black',
+            'fontWeight': 'bold',
             'font_family': 'Arial, Helvetica, sans-serif'
-            },
-            style_data_conditional=[
-                    {
-        'if': {'state': 'selected'},
-        'backgroundColor': 'inherit !important',
-        'border': 'inherit !important',
-                    }
-                ]
-            )
-        tabstats = dash_table.DataTable(id='table_data2',export_format='csv', data=stats.to_dict('records'), columns= [{'name': i, 'id': i} for i in stats.columns], style_cell={'padding': '5px'}, style_header={
-        'backgroundColor': '#090909',
-        'color': '#FCFCFC',
-        'border': '1px solid black',
-        'fontWeight': 'bold',
-        'font_family': 'Arial, Helvetica, sans-serif'
-            },
-            style_data={
-            'backgroundColor': '#191a1b',
-            'color': '#ffffff',
+                },
+                style_data={
+                'backgroundColor': '#191a1b',
+                'color': '#ffffff',
+                'border': '1px solid black',
+                'font_family': 'Arial, Helvetica, sans-serif'
+                },
+                style_data_conditional=[
+                        {
+            'if': {'state': 'selected'},
+            'backgroundColor': 'inherit !important',
+            'border': 'inherit !important',
+                        }
+                    ]
+                )
+            tabstats = dash_table.DataTable(id='table_data2',export_format='csv', data=stats.to_dict('records'), columns= [{'name': i, 'id': i} for i in stats.columns], style_cell={'padding': '5px'}, style_header={
+            'backgroundColor': '#090909',
+            'color': '#FCFCFC',
             'border': '1px solid black',
+            'fontWeight': 'bold',
             'font_family': 'Arial, Helvetica, sans-serif'
-            },
-            style_data_conditional=[
-            {
-        'if': {'state': 'selected'},
-        'backgroundColor': 'inherit !important',
-        'border': 'inherit !important',
-            }
-                ]
-            )
-        testtab = dash_table.DataTable(id='table_data3',export_format='csv', data=stats_test.to_dict('records'), columns= [{'name': i, 'id': i} for i in stats_test.columns], style_cell={'padding': '5px'}, style_header={
-        'backgroundColor': '#090909',
-        'color': '#FCFCFC',
-        'border': '1px solid black',
-        'fontWeight': 'bold',
-        'font_family': 'Arial, Helvetica, sans-serif'
-            },
-            style_data={
-            'backgroundColor': '#191a1b',
-            'color': '#ffffff',
+                },
+                style_data={
+                'backgroundColor': '#191a1b',
+                'color': '#ffffff',
+                'border': '1px solid black',
+                'font_family': 'Arial, Helvetica, sans-serif'
+                },
+                style_data_conditional=[
+                {
+            'if': {'state': 'selected'},
+            'backgroundColor': 'inherit !important',
+            'border': 'inherit !important',
+                }
+                    ]
+                )
+            testtab = dash_table.DataTable(id='table_data3',export_format='csv', data=stats_test.to_dict('records'), columns= [{'name': i, 'id': i} for i in stats_test.columns], style_cell={'padding': '5px'}, style_header={
+            'backgroundColor': '#090909',
+            'color': '#FCFCFC',
             'border': '1px solid black',
+            'fontWeight': 'bold',
             'font_family': 'Arial, Helvetica, sans-serif'
-            },
-            style_data_conditional=[
-            {
-        'if': {'state': 'selected'},
-        'backgroundColor': 'inherit !important',
-        'border': 'inherit !important',
-            }
-                ]
-            )
-        return [tabfit, df.to_json(), tabstats, False, False, testtab, test[0], test[5], X_test.to_json(), dct2.to_json()]
+                },
+                style_data={
+                'backgroundColor': '#191a1b',
+                'color': '#ffffff',
+                'border': '1px solid black',
+                'font_family': 'Arial, Helvetica, sans-serif'
+                },
+                style_data_conditional=[
+                {
+            'if': {'state': 'selected'},
+            'backgroundColor': 'inherit !important',
+            'border': 'inherit !important',
+                }
+                    ]
+                )
+            if float(prcnt) > 0:
+                radioTrainOrTest = [{'label': 'Train', 'value': 'train'}, {'label': 'Test', 'value': 'test'}]
+            else:
+                radioTrainOrTest = [{'label': 'Train', 'value': 'train'}] 
+            return [tabfit, df.to_json(), tabstats, False, False, testtab, test[0], test[5], X_test.to_json(), dct2.to_json(), [{'label': 'Fit', 'value': 'modelfit'}, {'label': 'Residuals', 'value': 'residuals'}], radioTrainOrTest]
     else:
         raise PreventUpdate
 

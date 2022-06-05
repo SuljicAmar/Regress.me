@@ -27,6 +27,15 @@ cardTransform = html.Div([
                                     value='None')
                 ],id = 'card_transform', className = 'model-card')
 
+cardIntercept = html.Div([
+                    html.P('Fit Intercept?', className='label'), 
+                    dbc.RadioItems(id='radioIntercept',inline=True,
+                                    options=[
+                                        {'label': 'Yes', 'value': 'yes'},
+                                        {'label': 'No', 'value': 'no'}
+                                        ], 
+                                    value='yes')
+                ],id = 'card_intercept', className = 'model-card')
 
 cardSplit = html.Div([
                     html.P('Test Data Split', className='label'),
@@ -344,7 +353,7 @@ cardBox = html.Div([
 cardFitX = html.Div([
                 html.P('X for Plot',), 
                 dbc.RadioItems(
-                id='radioIV')
+                id='radioIV') 
             ])
 
 cardScatterFit = html.Div([

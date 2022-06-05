@@ -18,10 +18,16 @@ class OLS:
         self.t = []
         self.p = []
         self.dw = 0
+        self.intercept = ''
 
-    def fit(self, X, Y):
+    def fit(self, X, Y, intercept=True):
         Ymean = Y.mean()
-        X_matrix = np.insert(X, 0, 1, axis=1)
+        if intercept == True:
+            X_matrix = np.insert(X, 0, 1, axis=1)
+            self.intercept=True
+        else:
+            self.intercept = False
+            X_matrix = X
         col = X.shape[1]
         row = X.shape[0]
         self.X = X_matrix
@@ -44,7 +50,10 @@ class OLS:
 
     def test(self, X, Y):
         Ymean = Y.mean()
-        X_matrix = np.insert(X, 0, 1, axis=1)
+        if self.intercept == True:
+            X_matrix = np.insert(X, 0, 1, axis=1)
+        else:
+            X_matrix = X
         col = X.shape[1]
         row = X.shape[0]
         pred = np.dot(X_matrix, self.beta)
@@ -57,3 +66,5 @@ class OLS:
         esum = sum([(residuals[i] - residuals[i-1])**2 for i in range(row) if i != 0])
         dw = esum/rss
         return residuals, r2, adj_r2, mse, dw, pred
+
+

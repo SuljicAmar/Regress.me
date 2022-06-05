@@ -14,14 +14,13 @@ rowFit = html.Div([
                 html.Hr(),
                 html.Div([
                     html.Div(cardTransform, className = 'quarter'),
+                    html.Div(cardIntercept, className = 'quarter'),
                     html.Div(cardSplit, className = 'quarter'),
                 ], id = 'bottom-half'),
-
                 html.Div([
                     html.Div(html.Button('Fit', id='btnFit', n_clicks=0, className='button-fit'), id = 'button-container'),
                 ], id = 'button-lightblue'),
             ], id = 'model-page-control'),
-
             html.Hr(className = 'horizontal-line'),
         html.Div([
             html.Div(html.P('Results'), className = 'head-text'),
@@ -51,18 +50,14 @@ rowViz = html.Div([
                             html.Div([
                                 dbc.RadioItems(
                                 id='radioViz',
-                                inline=True,
-                                options=[
-                                {'label': 'Fit', 'value': 'modelfit'}, {'label': 'Residuals', 'value': 'residuals'}])
+                                inline=True, value='modelfit')
                                 ], className = 'radio-container'),
                             html.Div(id = 'vertical-line'),
                             html.Div([
                                 dbc.RadioItems(
                                 id='radioTrainOrTest',
                                 inline=True,
-                                options=[{'label': 'Train', 'value': 'train'},
-                                {'label': 'Test', 'value': 'test'}
-                                ],value='train')], className = 'radio-container'),
+                                value='train')], className = 'radio-container'),
                             ], id = 'radios')
                         ], id = 'primary-radio-container')
                     ], id = 'primary-radio'),
@@ -91,7 +86,7 @@ rowFig = html.Div([
                 {'label': '2D Hist', 'value': 'fig2D'},
                 {'label': '3D Scatter Plot', 'value': 'figScatter3D'},
                 {'label': '3D Line Plot', 'value': 'figLine3D'},
-                 {'label': 'Surface Plot', 'value': 'figSurface3D'},
+                {'label': 'Surface Plot', 'value': 'figSurface3D'},
                 {'label': 'Mesh Grid', 'value': 'figMesh'},
                 {'label': 'Descriptive Stats', 'value': 'ds'}
              ])], id = 'main-dropdown-container'),                           

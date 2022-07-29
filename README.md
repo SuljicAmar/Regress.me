@@ -60,11 +60,8 @@ Currently, there is no means of displaying errors to the user. This means that i
 Over time I am hoping to fix this. 
 
 Common Errors:
+- Not uploading a dataset than can be read into a Pandas dataframe
+  - if your data is not uploading then please try with a simple dataset like Iris to make sure the site works. If the problem still persists then make a post on discussions
 - Selecting dependent variable as independent variable
 - perfect collinearity for OLS
 - perfect seperation for logit
-
-
-## Contributing
-Originally, this project started out as a fun way to learn Dash but am open to any contributions!
-

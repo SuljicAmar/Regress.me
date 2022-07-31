@@ -37,7 +37,10 @@ class OLS:
         self.residuals = self.Y  - self.yhat  
         self.tss = sum([(i-Ymean)**2 for i in self.Y])
         self.rss = sum([i**2 for i in self.residuals])
-        self.r2 = 1 - (self.rss/self.tss)
+        if self.intercept == True:
+            self.r2 = 1 - (self.rss/self.tss)
+        else:
+            self.r2 = 1 - (self.rss/sum([i**2 for i in self.Y]))
         self.adj_r2 = 1 - (((1-self.r2) * (row - 1)) / (row - col - 1)) 
         self.mse = self.rss / row
         self.se = np.sqrt(np.diagonal(np.dot(np.dot(np.transpose(self.residuals), self.residuals) / (row - col), np.linalg.inv(np.dot(np.transpose(X_matrix), X_matrix)))))

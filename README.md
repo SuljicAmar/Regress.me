@@ -1,30 +1,57 @@
 # Regress.me
 
-Regress.me is an easy to use data visualization tool powered by Dash/Plotly.
+[Regress.me](https://regress.me) is an easy to use data/model visualization tool powered by Python (Dash/Plotly). Simply upload a .csv file to get started. 
 
+If you want to run the app locally run 
 
+```python
+  python client_app.py
+```
 
-https://user-images.githubusercontent.com/70349769/171059057-d649a735-9b78-4ee2-9bc4-9f0ccc3dab56.mov
+## Visualizations 
+
+There are 15 graphs available inlcuding
+- Correlation matrix
+- Scatter chart
+- Bar chart
+- Distribution chart
+- Line chart
+- Pie chart
+- Scatter matrix
+- Box plot
+- Histogram
+- 2D Contour
+- 2D Histogram
+- 3D Scatter chart
+- 3D Line chart
+- Surface plot
+- Mesh grid
+
+A preview of the charts available:
+
+https://user-images.githubusercontent.com/70349769/172089621-34f74cc0-edf6-49c3-b347-79b1cd0f133c.mov
+
 
 
 ## OLS
-For OLS just use any non binary variable for the dependent variable 
 
-
-https://user-images.githubusercontent.com/70349769/172029868-20a49edd-4d6d-4f37-bed6-7eb3ed3dda90.mov
-
-
-## Logit
-To run a logistic model simply use a binary dependent variable
-
-
-https://user-images.githubusercontent.com/70349769/172029809-3e39e4aa-1a6d-4cea-a3a5-9820c43bda4b.mov
+To run an OLS model, just select a non binary quanitative variable as the dependent variable.
 
 
 
-## Get Started
+https://user-images.githubusercontent.com/70349769/172089834-1cc61fa5-ad5f-4df8-a069-32175ea27d3b.mov
 
-Visit [Regress.me](https://regress.me) and upload a dataset to get started.
+
+
+## Logistic Regression
+
+To run a logistic model, select a binary quanitative variable as the dependent variable. 
+
+
+
+https://user-images.githubusercontent.com/70349769/172089981-56229e03-cd67-4551-950a-503b47f9ec24.mov
+
+
 
 ## Errors
 
@@ -33,11 +60,8 @@ Currently, there is no means of displaying errors to the user. This means that i
 Over time I am hoping to fix this. 
 
 Common Errors:
+- Not uploading a dataset than can be read into a Pandas dataframe
+  - if your data is not uploading then please try with a simple dataset like Iris to make sure the site works. If the problem still persists then make a post on discussions
 - Selecting dependent variable as independent variable
 - perfect collinearity for OLS
 - perfect seperation for logit
-
-
-## Contributing
-Originally, this project started out as a fun way to learn Dash but am open to any contributions!
-

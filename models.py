@@ -64,9 +64,9 @@ class OLS:
         tss = sum([(i-Ymean)**2 for i in Y])
         rss = sum([i**2 for i in residuals])
         if self.intercept == True:
-            self.r2 = 1 - (self.rss/self.tss)
+            r2 = 1 - (rss/tss)
         else:
-            self.r2 = 1 - (self.rss/sum([i**2 for i in self.Y]))
+            r2 = 1 - (rss/sum([i**2 for i in Y]))
         adj_r2 = 1 - (((1-r2) * (row - 1)) / (row - col - 1)) 
         mse = rss / row        
         esum = sum([(residuals[i] - residuals[i-1])**2 for i in range(row) if i != 0])

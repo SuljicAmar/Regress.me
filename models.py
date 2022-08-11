@@ -18,6 +18,7 @@ class OLS:
         self.t = []
         self.p = []
         self.dw = 0
+        self.mape = 0
         self.intercept = ''
 
     def fit(self, X, Y, intercept=True):
@@ -49,6 +50,7 @@ class OLS:
         self.p = [2*(1-stats.t.cdf(np.abs(i),(row-col))) for i in self.t]
         esum = sum([(self.residuals[i] - self.residuals[i-1])**2 for i in range(row) if i != 0])
         self.dw = esum/self.rss
+        self.mape = np.mean(np.abs((self.Y - self.yhat) / self.Y)) * 100
         return self.beta
 
     def test(self, X, Y):
@@ -71,6 +73,7 @@ class OLS:
         mse = rss / row        
         esum = sum([(residuals[i] - residuals[i-1])**2 for i in range(row) if i != 0])
         dw = esum/rss
-        return residuals, r2, adj_r2, mse, dw, pred
+        mape = np.mean(np.abs((Y - pred) / Y)) * 100
+        return residuals, r2, adj_r2, mse, dw, pred, mape
 
 

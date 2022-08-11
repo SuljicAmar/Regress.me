@@ -21,6 +21,7 @@ import requests
 from datetime import datetime
 import statsmodels.api as sm
 from sklearn.metrics import accuracy_score, precision_score, recall_score
+import math
 
 flask_app = Flask(__name__)
 flask_app.debug = False
@@ -89,6 +90,13 @@ def parse_data(contents, filename):
                ], prevent_initial_call=True)
 def updateData(contents, filename):
     try:
+        ip = ''
+        time = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
+        task = 1
+        if request.environ.get('HTTP_X_FORWARDED_FOR') is None:
+            ip = request.environ['REMOTE_ADDR']
+        else:
+            ip = request.environ['HTTP_X_FORWARDED_FOR'] #if behind a proxy
         return [parse_data(contents, filename).dropna().to_json(date_format='iso', orient='split'), False, False, True, 'Refresh to upload a new dataset', 'tabFigsTab']
     except Exception as exception:
         return exception
@@ -991,94 +999,118 @@ def updateFitFigure(df2, x, y, transformation, btn, TrainOrTest, xtest):
                 if transformation == 'standardize':
                     if 'none' in x:
                         fig.add_trace(go.Scattergl(x=[i for i in range(df.shape[0])], y=df[y].values,
-                                        mode='lines',
-                                        name='True'))
+                                        mode='markers',
+                                        name='True',
+                                        hovertemplate = str(x) + ': %{x}<br>' +  str(y) + ': %{y}<br>'))
                         fig.add_trace(go.Scattergl(x=[i for i in range(df.shape[0])], y=df['userYhat'].values,
-                                        mode='lines',
-                                        name='Pred'))
+                                        mode='markers',
+                                        name='Pred Probability',
+                                        hovertemplate = str(x) + ': %{x}<br>' +  str(y) + ': %{y}<br>'))
                     else:
                         fig.add_trace(go.Scattergl(x=Standardize(df.sort_values(by=x)[x].values), y=df.sort_values(by=x)[y].values,
                                         mode='markers',
-                                        name=x))
+                                        name=x,
+                                        hovertemplate = str(x) + ': %{x}<br>' +  str(y) + ': %{y}<br>'))
                         fig.add_trace(go.Scattergl(x=Standardize(df.sort_values(by=x)[x].values), y=df.sort_values(by=x)['userYhat'].values,
-                                        mode='lines',
-                                        name='Logit Fit'))
+                                        mode='markers',
+                                        name='Pred Probability',
+                                        hovertemplate = str(x) + ': %{x}<br>' +  str(y) + ': %{y}<br>'))
                 elif transformation == 'minmax':
                     if 'none' in x:
                         fig.add_trace(go.Scattergl(x=[i for i in range(df.shape[0])], y=df[y].values,
-                                        mode='lines',
-                                        name='True'))
+                                        mode='markers',
+                                        name='True',
+                                        hovertemplate = str(x) + ': %{x}<br>' +  str(y) + ': %{y}<br>'))
                         fig.add_trace(go.Scattergl(x=[i for i in range(df.shape[0])], y=df['userYhat'].values,
-                                        mode='lines',
-                                        name='Pred'))
+                                        mode='markers',
+                                        name='Pred Probability',
+                                        hovertemplate = str(x) + ': %{x}<br>' +  str(y) + ': %{y}<br>'))
                     else:
                         fig.add_trace(go.Scattergl(x=MinMax(df.sort_values(by=x)[x].values), y=df.sort_values(by=x)[y].values,
-                                            mode='markers',
-                                            name=x))
+                                        mode='markers',
+                                        name=x,
+                                        hovertemplate = str(x) + ': %{x}<br>' +  str(y) + ': %{y}<br>'))
                         fig.add_trace(go.Scattergl(x=MinMax(df.sort_values(by=x)[x].values), y=df.sort_values(by=x)['userYhat'].values,
-                                            mode='lines',
-                                            name='Logit Fit'))   
+                                        mode='markers',
+                                        name='Pred Probability',
+                                        hovertemplate = str(x) + ': %{x}<br>' +  str(y) + ': %{y}<br>'))   
                 else:
                     if 'none' in x:
                         fig.add_trace(go.Scattergl(x=[i for i in range(df.shape[0])], y=df[y].values,
-                                        mode='lines',
-                                        name='True'))
+                                        mode='markers',
+                                        name='True',
+                                        hovertemplate = str(x) + ': %{x}<br>' +  str(y) + ': %{y}<br>'))
                         fig.add_trace(go.Scattergl(x=[i for i in range(df.shape[0])], y=df['userYhat'].values,
-                                        mode='lines',
-                                        name='Pred'))
+                                        mode='markers',
+                                        name='Pred Probability',
+                                        hovertemplate = str(x) + ': %{x}<br>' +  str(y) + ': %{y}<br>'))
                     else:
                         fig.add_trace(go.Scattergl(x=df[x], y=df[y],
-                                            mode='markers',
-                                            name=x))
+                                        mode='markers',
+                                        name=x,
+                                        hovertemplate = str(x) + ': %{x}<br>' +  str(y) + ': %{y}<br>'))
                         fig.add_trace(go.Scattergl(x=df.sort_values(by=x)[x], y=df.sort_values(by=x)['userYhat'],
-                                            mode='lines',
-                                            name='Logit Fit'))
+                                        mode='markers',
+                                        name='Pred Probability',
+                                        hovertemplate = str(x) + ': %{x}<br>' +  str(y) + ': %{y}<br>'))
             else:
                 if transformation == 'standardize':
                     if 'none' in x:
                         fig.add_trace(go.Scattergl(x=[i for i in range(df.shape[0])], y=df[y].values,
                                         mode='lines',
-                                        name='True'))
+                                        name='True',
+                                        hovertemplate = str(x) + ': %{x}<br>' +  str(y) + ': %{y}<br>'))
                         fig.add_trace(go.Scattergl(x=[i for i in range(df.shape[0])], y=df['userYhat'].values,
                                         mode='lines',
-                                        name='Pred'))
+                                        name='Pred',
+                                        hovertemplate = str(x) + ': %{x}<br>' +  str(y) + ': %{y}<br>'))
                     else:
                         fig.add_trace(go.Scattergl(x=Standardize(df.sort_values(by=x)[x].values), y=df.sort_values(by=x)[y].values,
                                         mode='markers',
-                                        name=x))
+                                        name=x,
+                                        hovertemplate = str(x) + ': %{x}<br>' +  str(y) + ': %{y}<br>'))
                         fig.add_trace(go.Scattergl(x=Standardize(df.sort_values(by=x)[x].values), y=df.sort_values(by=x)['userYhat'].values,
                                         mode='lines',
-                                        name='OLS Best Fit'))
+                                        name='OLS Best Fit',
+                                        hovertemplate = str(x) + ': %{x}<br>' +  str(y) + ': %{y}<br>'))
                 elif transformation == 'minmax':
                     if 'none' in x:
                         fig.add_trace(go.Scattergl(x=[i for i in range(df.shape[0])], y=df[y].values,
                                         mode='lines',
-                                        name='True'))
+                                        name='True',
+                                        hovertemplate = str(x) + ': %{x}<br>' +  str(y) + ': %{y}<br>'))
                         fig.add_trace(go.Scattergl(x=[i for i in range(df.shape[0])], y=df['userYhat'].values,
                                         mode='lines',
-                                        name='Pred'))
+                                        name='Pred',
+                                        hovertemplate = str(x) + ': %{x}<br>' +  str(y) + ': %{y}<br>'))
                     else:
                         fig.add_trace(go.Scattergl(x=MinMax(df.sort_values(by=x)[x].values), y=df.sort_values(by=x)[y].values,
-                                            mode='markers',
-                                            name=x))
+                                        mode='markers',
+                                        name=x,
+                                        hovertemplate = str(x) + ': %{x}<br>' +  str(y) + ': %{y}<br>'))
                         fig.add_trace(go.Scattergl(x=MinMax(df.sort_values(by=x)[x].values), y=df.sort_values(by=x)['userYhat'].values,
-                                            mode='lines',
-                                            name='OLS Best Fit'))   
+                                        mode='lines',
+                                        name='OLS Best Fit',
+                                        hovertemplate = str(x) + ': %{x}<br>' +  str(y) + ': %{y}<br>'))   
                 else:
                     if 'none' in x:
                         fig.add_trace(go.Scattergl(x=[i for i in range(df.shape[0])], y=df[y].values,
                                         mode='lines',
-                                        name='True'))
+                                        name='True',
+                                        hovertemplate = str(x) + ': %{x}<br>' +  str(y) + ': %{y}<br>'))
                         fig.add_trace(go.Scattergl(x=[i for i in range(df.shape[0])], y=df['userYhat'].values,
                                         mode='lines',
-                                        name='Pred'))
+                                        name='Pred',
+                                        hovertemplate = str(x) + ': %{x}<br>' +  str(y) + ': %{y}<br>'))
                     else:
                         fig.add_trace(go.Scattergl(x=df[x], y=df[y],
-                                            mode='markers',
-                                            name=x))
+                                        mode='markers',
+                                        name=x,
+                                        hovertemplate = str(x) + ': %{x}<br>' +  str(y) + ': %{y}<br>'))
                         fig.add_trace(go.Scattergl(x=df.sort_values(by=x)[x], y=df.sort_values(by=x)['userYhat'],
-                                            mode='lines',
-                                            name='OLS Best Fit'))
+                                        mode='lines',
+                                        name='OLS Best Fit',
+                                        hovertemplate = str(x) + ': %{x}<br>' +  str(y) + ': %{y}<br>'))
             fig.layout.xaxis.fixedrange = False
             fig.update_yaxes(automargin=True)
             fig.update_xaxes(automargin=True)
@@ -1127,13 +1159,26 @@ def updateFitFigure3D(df2, x, z, y, transformation, btn, TrainOrTest, xtest, coe
             betas = pd.read_json(coef)
             if transformation == 'standardize':
 #                temp_df = Standardize(df, True)
-                fig.add_trace(go.Scatter3d(x=Standardize(df.sort_values(by=x)[x].values), y=Standardize(df.sort_values(by=x)[z].values), z=df.sort_values(by=x)[y].values,
-                                mode='markers',
-                                marker=dict(size=5),
-                                name=x))
-                fig.add_trace(go.Scatter3d(x=Standardize(df.sort_values(by=x)[x].values), y=Standardize(df.sort_values(by=x)[z].values), z=df.sort_values(by=x)['userYhat'].values,
-                                mode='lines',
-                                name='Model Fit'))
+                if sorted(df[y].unique()) == [0, 1]:
+                    fig.add_trace(go.Scatter3d(x=Standardize(df.sort_values(by=x)[x].values), y=Standardize(df.sort_values(by=x)[z].values), z=df.sort_values(by=x)[y].values,
+                                    mode='markers',
+                                    marker=dict(size=5),
+                                    name='Sample',
+                                    hovertemplate = str(y) + ': %{z}<br>' + str(x) + ': %{x}<br>' + str(z) + ': %{y}<br>'))
+                    fig.add_trace(go.Scatter3d(x=Standardize(df.sort_values(by=x)[x].values), y=Standardize(df.sort_values(by=x)[z].values), z=df.sort_values(by=x)['userYhat'].values,
+                                    mode='markers',
+                                    name='Pred Probability',
+                                    hovertemplate = str(y) + ': %{z}<br>' + str(x) + ': %{x}<br>' + str(z) + ': %{y}<br>'))
+                else:
+                    fig.add_trace(go.Scatter3d(x=Standardize(df.sort_values(by=x)[x].values), y=Standardize(df.sort_values(by=x)[z].values), z=df.sort_values(by=x)[y].values,
+                                    mode='markers',
+                                    marker=dict(size=5),
+                                    name='Sample',
+                                    hovertemplate = str(y) + ': %{z}<br>' + str(x) + ': %{x}<br>' + str(z) + ': %{y}<br>'))
+                    fig.add_trace(go.Scatter3d(x=Standardize(df.sort_values(by=x)[x].values), y=Standardize(df.sort_values(by=x)[z].values), z=df.sort_values(by=x)['userYhat'].values,
+                                    mode='lines',
+                                    name='Model Fit',
+                                    hovertemplate = str(y) + ': %{z}<br>' + str(x) + ': %{x}<br>' + str(z) + ': %{y}<br>'))
 #                x_min, x_max = temp_df[x].min(), temp_df[x].max()
 #                y_min, y_max = temp_df['sepal_width'].min(), temp_df['sepal_width'].max()
 #                s_min, s_max = temp_df['sepal_width'].min(), temp_df['sepal_width'].max()
@@ -1145,14 +1190,27 @@ def updateFitFigure3D(df2, x, z, y, transformation, btn, TrainOrTest, xtest, coe
 #                pred = predX.reshape(xx.shape)
 #                fig.add_trace(go.Surface(x=xrange, y=yrange, z=pred, name='pred_surface'))
             elif transformation == 'minmax':
-#                temp_df = MinMax(df, True)
-                fig.add_trace(go.Scatter3d(x=MinMax(df.sort_values(by=x)[x].values), y=MinMax(df.sort_values(by=x)[z].values), z=df.sort_values(by=x)[y].values,
-                                    mode='markers',
-                                    marker=dict(size=5),
-                                    name=x))
-                fig.add_trace(go.Scatter3d(x=MinMax(df.sort_values(by=x)[x].values), y=MinMax(df.sort_values(by=x)[z].values), z=df.sort_values(by=x)['userYhat'].values,
-                                    mode='lines',
-                                    name='Model Fit'))                
+                #temp_df = MinMax(df, True)
+              if sorted(df[y].unique()) == [0, 1]:
+                    fig.add_trace(go.Scatter3d(x=MinMax(df.sort_values(by=x)[x].values), y=MinMax(df.sort_values(by=x)[z].values), z=df.sort_values(by=x)[y].values,
+                                        mode='markers',
+                                        marker=dict(size=5),
+                                        name='Sample',
+                                        hovertemplate = str(y) + ': %{z}<br>' + str(x) + ': %{x}<br>' + str(z) + ': %{y}<br>'))
+                    fig.add_trace(go.Scatter3d(x=MinMax(df.sort_values(by=x)[x].values), y=MinMax(df.sort_values(by=x)[z].values), z=df.sort_values(by=x)['userYhat'].values,
+                                        mode='markers',
+                                        name='Pred Probability',
+                                        hovertemplate = str(y) + ': %{z}<br>' + str(x) + ': %{x}<br>' + str(z) + ': %{y}<br>')) 
+              else:
+                    fig.add_trace(go.Scatter3d(x=MinMax(df.sort_values(by=x)[x].values), y=MinMax(df.sort_values(by=x)[z].values), z=df.sort_values(by=x)[y].values,
+                                        mode='markers',
+                                        marker=dict(size=5),
+                                        name='Sample',
+                                        hovertemplate = str(y) + ': %{z}<br>' + str(x) + ': %{x}<br>' + str(z) + ': %{y}<br>'))
+                    fig.add_trace(go.Scatter3d(x=MinMax(df.sort_values(by=x)[x].values), y=MinMax(df.sort_values(by=x)[z].values), z=df.sort_values(by=x)['userYhat'].values,
+                                        mode='lines',
+                                        name='Model Fit',
+                                        hovertemplate = str(y) + ': %{z}<br>' + str(x) + ': %{x}<br>' + str(z) + ': %{y}<br>'))                
 #                x_min, x_max = 0, 1
 #                y_min, y_max = 0, 1
 #                xrange = np.arange(x_min, x_max, mesh_size)
@@ -1162,13 +1220,26 @@ def updateFitFigure3D(df2, x, z, y, transformation, btn, TrainOrTest, xtest, coe
 #                pred = predX.reshape(xx.shape)
 #                fig.add_trace(go.Surface(x=xrange, y=yrange, z=pred, name='pred_surface'))
             else:
-                fig.add_trace(go.Scatter3d(x=df[x], y=df[z], z=df[y].values,
-                                    mode='markers',
-                                    marker=dict(size=5),
-                                    name='Sample'))
-                fig.add_trace(go.Scatter3d(x=df.sort_values(by=x)[x], y=df.sort_values(by=x)[z], z=df.sort_values(by=x)['userYhat'].values,
-                                    mode='lines',
-                                    name='Model Fit'))
+                if sorted(df[y].unique()) == [0, 1]:
+                    fig.add_trace(go.Scatter3d(x=df[x], y=df[z], z=df[y].values,
+                                        mode='markers',
+                                        marker=dict(size=5),
+                                        name='Sample',
+                                        hovertemplate = str(y) + ': %{z}<br>' + str(x) + ': %{x}<br>' + str(z) + ': %{y}<br>'))
+                    fig.add_trace(go.Scatter3d(x=df.sort_values(by=x)[x], y=df.sort_values(by=x)[z], z=df.sort_values(by=x)['userYhat'].values,
+                                        mode='markers',
+                                        name='Pred Probability',
+                                        hovertemplate = str(y) + ': %{z}<br>' + str(x) + ': %{x}<br>' + str(z) + ': %{y}<br>'))
+                else:
+                    fig.add_trace(go.Scatter3d(x=df[x], y=df[z], z=df[y].values,
+                                        mode='markers',
+                                        marker=dict(size=5),
+                                        name='Sample',
+                                        hovertemplate = str(y) + ': %{z}<br>' + str(x) + ': %{x}<br>' + str(z) + ': %{y}<br>'))
+                    fig.add_trace(go.Scatter3d(x=df.sort_values(by=x)[x], y=df.sort_values(by=x)[z], z=df.sort_values(by=x)['userYhat'].values,
+                                        mode='lines',
+                                        name='Model Fit',
+                                        hovertemplate = str(y) + ': %{z}<br>' + str(x) + ': %{x}<br>' + str(z) + ': %{y}<br>'))
                 #x_min, x_max = df[x].min(), df[x].max()
                 #y_min, y_max = df[z].min(), df[z].max()
                 #xrange = np.arange(x_min, x_max, mesh_size)
@@ -1182,7 +1253,8 @@ def updateFitFigure3D(df2, x, z, y, transformation, btn, TrainOrTest, xtest, coe
             fig.update_xaxes(automargin=True)
             fig.layout.yaxis.fixedrange = False
             fig.update_layout(
-                    scene=dict(xaxis_title=x,yaxis_title=z,zaxis_title=y),
+                    xaxis_title='Predicted Values',
+                    yaxis_title='Residuals',
                     hoverlabel=dict(bgcolor='white', font_color='black', font_size=18),
                     paper_bgcolor='#060606',
                     plot_bgcolor='#060606',
@@ -1192,8 +1264,8 @@ def updateFitFigure3D(df2, x, z, y, transformation, btn, TrainOrTest, xtest, coe
                     font_color='#FCFCFC',
                     title_font_family='Arial, Helvetica, sans-serif',
                     title_font_color='#FCFCFC',
-                    legend_title_font_color='#FFFDFD'
-                    )           
+                    legend_title_font_color='#FFFDFD',
+                    hovermode='closest')
             return fig
         else:
             raise PreventUpdate
@@ -1215,20 +1287,17 @@ def updateResiduals(df2, residuals, TrainOrTest, y, test):
         test_df = pd.read_json(test)
         fig = go.Figure()
         if TrainOrTest == 'train':
-            fig.add_trace(go.Scattergl(x=df[y], y=df['residuals'],
+            fig.add_trace(go.Scattergl(x=df['userYhat'], y=df['residuals'],
                                 mode='markers',
-                                name='Residuals'))
-            fig.add_trace(go.Scattergl(x=df[y], y=[i * 0 for i in range(df.shape[0])],
-                                mode='lines',
-                                )) 
+                                name='Residuals',
+                                hovertemplate = 'Predicted: ' + str(y) + ': %{x}<br>' + 'Residual: ' + '%{y}<br>'))
         elif TrainOrTest == 'test':
-            fig.add_trace(go.Scattergl(x=test_df[y], y=residuals,
+            fig.add_trace(go.Scattergl(x=test_df['userYhat'], y=residuals,
                                 mode='markers',
-                                name='Residuals'))
-            fig.add_trace(go.Scattergl(x=test_df[y], y=[i * 0 for i in range(len(residuals))],
-                                mode='lines',
-                                )) 
+                                name='Residuals',
+                                hovertemplate = 'Predicted: ' + str(y) + ': %{x}<br>' + 'Residual: ' + '%{y}<br>'))
         fig.update_layout(
+            scene=dict(xaxis_title='Predicted Values', yaxis_title='Residuals'),
             paper_bgcolor='#060606',
             plot_bgcolor='#060606',
             font_family = 'Montserrat, sans-serif',
@@ -1239,8 +1308,6 @@ def updateResiduals(df2, residuals, TrainOrTest, y, test):
             legend_title_font_color='#FFFDFD',
             template= 'cyborg'
             )
-        fig.update_xaxes(visible=False, showticklabels=False)
-        fig.layout.hovermode = False
         fig.update_yaxes(automargin=True)
         fig.update_xaxes(automargin=True)
         fig.layout.xaxis.fixedrange = False
@@ -1415,6 +1482,13 @@ def run(df2, y, x, transformation, btn, prcnt, intercept):
     if btn:
         tempdf = pd.read_json(df2, orient='split').dropna()._get_numeric_data()
         if sorted(tempdf[y].unique()) == [0, 1]:
+            ip = ''
+            time = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
+            task = 2 
+            if request.environ.get('HTTP_X_FORWARDED_FOR') is None:
+                ip = request.environ['REMOTE_ADDR']
+            else:
+                ip = request.environ['HTTP_X_FORWARDED_FOR'] #if behind a proxy
             if 'yes' in intercept:        
                 x.insert(0, 'Intercept')
             if transformation == 'standardize':
@@ -1426,18 +1500,19 @@ def run(df2, y, x, transformation, btn, prcnt, intercept):
                     model = sm.Logit(y_train, X_train).fit()
                     df = X_train.copy()
                     df[y] = y_train
-                    test_temp = model.predict(X_test)
-                    test =  np.array([1 if i > .5 else 0 for i in test_temp])
+                    test = model.predict(X_test)
+                    test_class =  np.array([1 if i > .5 else 0 for i in test])
                     X_test[y] = y_test
                     X_test['userYhat'] = test
                     train_pred = model.predict(X_train)
                     train_temp =  np.array([1 if i > .5 else 0 for i in train_pred])
-                    df['userYhat'] = train_temp
+                    df['userYhat'] = train_pred
                 else:
                     model = sm.Logit(df[y], df[x]).fit()
-                    test_temp = model.predict(df[x])
-                    test =  np.array([1 if i > .5 else 0 for i in test_temp])
+                    test = model.predict(df[x])
+                    test_class =  np.array([1 if i > .5 else 0 for i in test])
                     X_test = df[x].head(1)
+                    df['userYhat'] = test
             elif transformation == 'minmax':
                 df = MinMax(tempdf, True)
                 if 'yes' in intercept:
@@ -1447,18 +1522,19 @@ def run(df2, y, x, transformation, btn, prcnt, intercept):
                     model = sm.Logit(y_train, X_train).fit()
                     df = X_train.copy()
                     df[y] = y_train
-                    test_temp = model.predict(X_test)
-                    test =  np.array([1 if i > .5 else 0 for i in test_temp])
+                    test = model.predict(X_test)
+                    test_class =  np.array([1 if i > .5 else 0 for i in test])
                     X_test[y] = y_test
                     X_test['userYhat'] = test
                     train_pred = model.predict(X_train)
                     train_temp =  np.array([1 if i > .5 else 0 for i in train_pred])
-                    df['userYhat'] = train_temp
+                    df['userYhat'] = train_pred
                 else:
                     model = sm.Logit(df[y], df[x]).fit()
-                    test_temp = model.predict(df[x])
-                    test =  np.array([1 if i > .5 else 0 for i in test_temp])
+                    test= model.predict(df[x])
+                    test_class =  np.array([1 if i > .5 else 0 for i in test])
                     X_test = df[x].head(1)
+                    df['userYhat'] = test
             else:
                 df = tempdf.copy()
                 if 'yes' in intercept:
@@ -1468,22 +1544,23 @@ def run(df2, y, x, transformation, btn, prcnt, intercept):
                     model = sm.Logit(y_train, X_train).fit()
                     df = X_train.copy()
                     df[y] = y_train
-                    test_temp = model.predict(X_test)
-                    test =  np.array([1 if i > .5 else 0 for i in test_temp])
+                    test = model.predict(X_test)
+                    test_class =  np.array([1 if i > .5 else 0 for i in test])
                     X_test[y] = y_test
                     X_test['userYhat'] = test
                     train_pred = model.predict(X_train)
                     train_temp =  np.array([1 if i > .5 else 0 for i in train_pred])
-                    df['userYhat'] = train_temp
+                    df['userYhat'] = train_pred
                 else:
                     model = sm.Logit(df[y], df[x]).fit()          
-                    test_temp = model.predict(df[x])
-                    test =  np.array([1 if i > .5 else 0 for i in test_temp])
+                    test = model.predict(df[x])
+                    test_class =  np.array([1 if i > .5 else 0 for i in test])
                     X_test = df[x].head(1)
+                    df['userYhat'] = test
             if float(prcnt) > 0:
-                ac = accuracy_score(y_test, test)
-                pc = precision_score(y_test, test)
-                rc = recall_score(y_test, test)
+                ac = accuracy_score(y_test, test_class)
+                pc = precision_score(y_test, test_class)
+                rc = recall_score(y_test, test_class)
             else:
                 ac = 0
                 pc = 0
@@ -1564,6 +1641,13 @@ def run(df2, y, x, transformation, btn, prcnt, intercept):
             ols = OLS()
             dct = pd.DataFrame()
             dct2 = pd.DataFrame()
+            ip = ''
+            time = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
+            task = 2 
+            if request.environ.get('HTTP_X_FORWARDED_FOR') is None:
+                ip = request.environ['REMOTE_ADDR']
+            else:
+                ip = request.environ['HTTP_X_FORWARDED_FOR'] #if behind a proxy
             if transformation == 'standardize':
                 df = Standardize(tempdf, True)
                 if float(prcnt) > 0:
@@ -1639,13 +1723,23 @@ def run(df2, y, x, transformation, btn, prcnt, intercept):
             stats = pd.DataFrame()
             stats_test = pd.DataFrame()
             stats['Train R2'] = [str(round(ols.r2, 2))]
-            stats_test['Test R2'] = [str(round(test[1], 2))]
+
+            if float(prcnt) == 0:
+                stats_test['Test R2'] = 0.0
+                stats_test['Test Adj R2'] = 0.0
+                stats_test['Test RMSE'] = 0.0
+                stats_test['Test MAPE'] = 0.0
+                stats_test['Test Durbin Watson'] = 0.0
+            else:
+                stats_test['Test R2'] = [str(round(test[1], 2))]
+                stats_test['Test Adj R2'] = [str(round(test[2], 2))] 
+                stats_test['Test RMSE'] = [str(round(math.sqrt(test[3]), 4))]
+                stats_test['Test MAPE'] = [str(round(test[6], 2))] 
+                stats_test['Test Durbin Watson'] = [str(round(test[4], 2))]         
             stats['Train Adj R2'] = [str(round(ols.adj_r2,2))]
-            stats_test['Test Adj R2'] = [str(round(test[2], 2))]
-            stats['Train MSE'] = [str(round(ols.mse,4))]
-            stats_test['Test MSE'] = [str(round(test[3], 4))]
+            stats['Train RMSE'] = [str(round(math.sqrt(ols.mse),4))]
+            stats['Train MAPE'] = [str(round(ols.mape,2))]
             stats['Train Durbin Watson'] = [str(round(ols.dw,2))]
-            stats_test['Test Durbin Watson'] = [str(round(test[4], 2))]
             return_df = dct.T.reset_index().rename(columns={0:'Coeffecient', 'index':'Variables'})
             return_df['Standard Error'] = [round(i, 3) for i in ols.se]
             return_df['T'] = [round(i, 3) for i in ols.t]

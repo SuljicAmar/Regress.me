@@ -83,22 +83,19 @@ def parse_data(contents, filename):
                Output('uploadToolTip', 'children'),
                Output('tabs', 'active_tab'),
                Output('userDataChoiceError', 'children'),
-               Output('dropDatasets', 'disabled'),
-               Output('userUploadToolTip', 'children'),],
+               Output('dropDatasets', 'disabled')],
               [Input('uploadData', 'contents'),
                Input('uploadData', 'filename'),               
                Input('dropDatasets', 'value')], prevent_intial_call=True)
 def updateData(contents, filename, dataset):
     try:
-        if contents and filename:
-            df = parse_data(contents, filename)
         else:
             if dataset:
                 df = pd.read_csv('sample_datasets/{}.csv'.format(dataset))
         if isinstance(df, pd.DataFrame):
-            return [df.dropna().to_json(date_format='iso', orient='split'), False, False, True, 'Refresh to upload a new dataset', 'tabFigsTab', html.Div(html.P('')), True, 'Refresh to use a different dataset']
+            return [df.dropna().to_json(date_format='iso', orient='split'), False, False, True, 'Refresh to upload a new dataset', 'tabFigsTab', html.Div(html.P('')), True]
         else:
-            return [pd.DataFrame({'x':[1]}).to_json(date_format='iso', orient='split'), True, True, True, 'Refresh to try again', 'tabHome', df, True, 'Refresh to use a different dataset']
+            return [pd.DataFrame({'x':[1]}).to_json(date_format='iso', orient='split'), True, True, True, 'Refresh to try again', 'tabHome', df, True]
     except Exception as exception:
         raise PreventUpdate
 
@@ -1233,8 +1230,7 @@ def updateFitFigure3D(df2, x, z, y, transformation, btn, TrainOrTest, xtest, coe
             fig.update_xaxes(automargin=True)
             fig.layout.yaxis.fixedrange = False
             fig.update_layout(
-                    xaxis_title='Predicted Values',
-                    yaxis_title='Residuals',
+                    scene=dict(xaxis_title=x,yaxis_title=z,zaxis_title=y),
                     hoverlabel=dict(bgcolor='white', font_color='black', font_size=18),
                     paper_bgcolor='#060606',
                     plot_bgcolor='#060606',

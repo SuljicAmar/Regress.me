@@ -375,13 +375,8 @@ cardScatterFit3D = html.Div([
                     ], className = 'graph-parent')
 
 
-lstDatasets = ['iris', 'tips', 'james_bond', 'smoking', 'mpg', 'caffeine'] 
-cardDatasets = html.Div([dcc.Dropdown(id='dropDatasets', options=[{'label': str(i), 'value': str(i)} for i in lstDatasets]),
-                        dbc.Tooltip(
-                        '',
-                        target='dropDatasets',
-                        id='userUploadToolTip'
-                        ),], id='user_upload_section_content')
+lstDatasets = ['iris', 'tips', 'james_bond', 'mpg', 'caffeine'] 
+cardDatasets = html.Div([dcc.Dropdown(id='dropDatasets', options=[{'label': str(i), 'value': str(i)} for i in lstDatasets])], id='user_upload_section_content')
 
 
 cardUpload = html.Div([

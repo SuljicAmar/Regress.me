@@ -27,37 +27,15 @@ There are 15 graphs available inlcuding
 - Surface plot
 - Mesh grid
 
-A preview of the charts available:
-
-https://user-images.githubusercontent.com/70349769/172089621-34f74cc0-edf6-49c3-b347-79b1cd0f133c.mov
-
-
-
 ## OLS
 
 To run an OLS model, just select a non binary quanitative variable as the dependent variable.
-
-
-
-https://user-images.githubusercontent.com/70349769/172089834-1cc61fa5-ad5f-4df8-a069-32175ea27d3b.mov
-
-
 
 ## Logistic Regression
 
 To run a logistic model, select a binary quanitative variable as the dependent variable. 
 
-
-
-https://user-images.githubusercontent.com/70349769/172089981-56229e03-cd67-4551-950a-503b47f9ec24.mov
-
-
-
 ## Errors
-
-Currently, there is no means of displaying errors to the user. This means that if you tried performing an action and nothing occurred then there was an error. 
-
-Over time I am hoping to fix this. 
 
 Common Errors:
 - Not uploading a dataset than can be read into a Pandas dataframe

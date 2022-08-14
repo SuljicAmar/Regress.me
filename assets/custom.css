@@ -115,23 +115,41 @@ body .dash-dropdown .select{
     margin-bottom: 25px;
 }
 
+#home_text2 {
+    font-size: 18px;
+    margin-bottom: 25px;
+}
 
+#home_text_error {
+    font-size: 25px;
+    margin-bottom: 25px;
+    color: #FFFFFF !important;
+    background-color: #9c2b2e;
+}
 
 #uploadData{
     border-radius: 30px;
-    border: 2px dashed rgb(25, 163, 255);
     background-color: #141414ab;
     box-shadow: -2px -2px 6px #555555, 2px 2px 6px #555555;
     width: 80vw;
 }
 
+#user_upload_section_content {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    width: 80vw;
+}
 
 #upload_section_content{
-    display: flex;
+    display: none;
     flex-direction: column;
     align-items: center;
 }
 
+#userDataChoice {
+    width: 80vw;
+}
 
 #Upload_Icon{
     width: 95px;
@@ -139,6 +157,11 @@ body .dash-dropdown .select{
     cursor: pointer;
 }
 
+#Git_Icon {
+    width: 35px;
+    margin: 20px;
+    cursor: pointer;
+}
 
 #Upload_Text{
     font-size: 20px;
@@ -321,6 +344,9 @@ body .dash-dropdown .select{
     overflow: auto;
 }
 
+#dropDatasets{
+    width: 100%;
+}
 
 #testsplit, #dropDV{
     width: 100%;
@@ -528,7 +554,7 @@ body .dash-dropdown .select{
 
 
 .viz-model-chart{
-    width: 85%;
+    width: 80%;
     height: 100%;
 }
 
@@ -539,7 +565,7 @@ body .dash-dropdown .select{
 
 
 .viz-model-radio{
-    width: 15%;
+    width: 20%;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -599,10 +625,10 @@ body .dash-dropdown .select{
     }
 
     .viz-model-radio{
-        width: 20%;
+        width: 25%;
     }
 
     .viz-model-chart{
-        width: 80%;
+        width: 75%;
     }
 }

@@ -5,6 +5,8 @@ import base64
 
 upload_icon = 'assets/upload2.png'
 upload_icon_64 = base64.b64encode(open(upload_icon, 'rb').read()).decode('ascii')
+github_icon = 'assets/git.png'
+github_icon_64 = base64.b64encode(open(github_icon, 'rb').read()).decode('ascii')
 
 cardDV = html.Div([
             html.P('Dependent Variable', className = 'label'), 
@@ -373,13 +375,22 @@ cardScatterFit3D = html.Div([
                     ], className = 'graph-parent')
 
 
+lstDatasets = ['iris', 'tips', 'james_bond', 'smoking', 'mpg', 'caffeine'] 
+cardDatasets = html.Div([dcc.Dropdown(id='dropDatasets', options=[{'label': str(i), 'value': str(i)} for i in lstDatasets]),
+                        dbc.Tooltip(
+                        '',
+                        target='dropDatasets',
+                        id='userUploadToolTip'
+                        ),], id='user_upload_section_content')
+
+
 cardUpload = html.Div([
+                html.Br(),
                 dcc.Upload(
                     id='uploadData',
                     children=html.Div([
                     html.Img(id = 'Upload_Icon', src = 'data:image/png;base64,{}'.format(upload_icon_64)),
-                    html.P(['Drag and Drop or ',html.A('Click to Upload a .CSV', id = 'Upload_Link')], id = 'Upload_Text'),
-                    # html.A('Click to Files', id = 'Upload_Link')
+                    html.P(['Drag and Drop or ',html.A('Click to Upload a .CSV (~50 MB Max)', id = 'Upload_Link')], id = 'Upload_Text'),
                     ], id = 'upload_section_content'),
                     multiple=False
                     ),
@@ -388,17 +399,37 @@ cardUpload = html.Div([
                         target='uploadData',
                         id='uploadToolTip'
                     ),
+                html.Br(),
+                html.Br(),
+                html.Div(id='userDataChoiceError'),
             ])
 
+cardSelectDataOption =  html.Div([html.Div([
+                                dbc.RadioItems(
+                                id='radioChooseDataOption',
+                                inline=True,
+                                options=[{'label': 'Use a Sample Dataset', 'value': 'sampDataset'},{'label': 'Upload Your Own Data', 'value': 'userUploadDataset'}]
+                                )], className = 'radio-container')])
 
-
+footer = html.Footer([html.A(html.Img(id = 'Git_Icon', src = 'data:image/png;base64,{}'.format(github_icon_64)), href='https://github.com/SuljicAmar/Regress.me', target='_blank'),])
 
 jumbotronHome = html.Div([
             html.H1('Welcome to regress.me', className='display-3', id = 'home_header'),
             html.P([
-                'regress.me was designed to provide easy, efficient, and effective exploratory analysis for already cleaned datasets.', html.Br(),
-                'You can visualize your data using a number of different graphs and fit regression models with no code.', html.Br(), 
-                'Upload a .csv file (~50MB Max) to get started.'], id = 'home_text'
+                'Easy, efficient, and effective exploratory analysis.', html.Br(),
+                   ], id = 'home_text'
             ),
-           cardUpload
+           cardSelectDataOption,
+           html.Br(),
+           cardDatasets,
+           cardUpload,
+           html.Br(),
+           footer
     ],id = "home_page")
+
+
+uploadError = html.Div([
+            html.H1('There was an error uploading your file. Please make sure the .csv is able to be loaded into a Pandas DataFrame.', className='display-3', id = 'home_text_error'),
+
+    ],id = "home_page_error")
+

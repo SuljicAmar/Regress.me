@@ -5,7 +5,6 @@ from dash.exceptions import PreventUpdate
 import plotly.express as px
 import pandas as pd
 import plotly.figure_factory as ff
-import numpy as np
 import plotly.graph_objects as go
 import base64
 import io
@@ -23,6 +22,7 @@ import statsmodels.api as sm
 from sklearn.metrics import accuracy_score, precision_score, recall_score
 import math
 
+
 flask_app = Flask(__name__)
 flask_app.debug = False
 app = dash.Dash(__name__, server=flask_app, suppress_callback_exceptions=True, title='Regress.me',  url_base_pathname='/', external_stylesheets=[
@@ -30,7 +30,6 @@ app = dash.Dash(__name__, server=flask_app, suppress_callback_exceptions=True, t
         'https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100;0,600;1,300&display=swap'
     ])
 load_figure_template('cyborg')
-
 
 app.layout = html.Div(children=
                       [
@@ -67,45 +66,47 @@ def parse_data(contents, filename):
             try:
                 if 'csv' in filename:
                     df = pd.read_csv(io.StringIO(decoded.decode('utf-8')))
-                elif 'xls' in filename:
-                    df = pd.read_excel(io.BytesIO(decoded))
-                elif 'txt' or 'tsv' in filename:
-                    df = pd.read_csv(io.StringIO(decoded.decode('utf-8')), delimiter=r'\s+')
+                return df
             except Exception as e:
-                return html.Div(['There was an error processing this file.'])
-            return df
+                return uploadError
         except Exception as exception:
-            return exception
+            return uploadError
     else:
-        return pd.DataFrame({'x':[0,1], 'y':[1,2]})
+        raise PreventUpdate
+
+
 
 @app.callback([Output('userData', 'data'),
                Output('tabFigs', 'disabled'),
                Output('tabModel', 'disabled'),
                Output('uploadData', 'disabled'),
                Output('uploadToolTip', 'children'),
-               Output('tabs', 'active_tab')],
+               Output('tabs', 'active_tab'),
+               Output('userDataChoiceError', 'children'),
+               Output('dropDatasets', 'disabled'),
+               Output('userUploadToolTip', 'children'),],
               [Input('uploadData', 'contents'),
-               Input('uploadData', 'filename')
-               ], prevent_initial_call=True)
-def updateData(contents, filename):
+               Input('uploadData', 'filename'),               
+               Input('dropDatasets', 'value')], prevent_intial_call=True)
+def updateData(contents, filename, dataset):
     try:
-        ip = ''
-        time = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
-        task = 1
-        if request.environ.get('HTTP_X_FORWARDED_FOR') is None:
-            ip = request.environ['REMOTE_ADDR']
+        if contents and filename:
+            df = parse_data(contents, filename)
         else:
-            ip = request.environ['HTTP_X_FORWARDED_FOR'] #if behind a proxy
-        return [parse_data(contents, filename).dropna().to_json(date_format='iso', orient='split'), False, False, True, 'Refresh to upload a new dataset', 'tabFigsTab']
+            if dataset:
+                df = pd.read_csv('sample_datasets/{}.csv'.format(dataset))
+        if isinstance(df, pd.DataFrame):
+            return [df.dropna().to_json(date_format='iso', orient='split'), False, False, True, 'Refresh to upload a new dataset', 'tabFigsTab', html.Div(html.P('')), True, 'Refresh to use a different dataset']
+        else:
+            return [pd.DataFrame({'x':[1]}).to_json(date_format='iso', orient='split'), True, True, True, 'Refresh to try again', 'tabHome', df, True, 'Refresh to use a different dataset']
     except Exception as exception:
-        return exception
+        raise PreventUpdate
 
 
+        
 
 @app.callback(Output('dropDV', 'options'),
-              [Input('userData', 'data')
-               ])
+              Input('userData', 'data'))
 def updateDropDV(df2):
     if df2:
         try:
@@ -267,8 +268,8 @@ def updatePieOptions(df2, value):
                 rtrn = i
                 if is_datetime(df[i]):
                     temp.append({'label': str(i), 'value': str(i)})    
-            for i in numeric_col:
-                temp.append({'label': str(i), 'value': str(i)})
+        for i in numeric_col:
+            temp.append({'label': str(i), 'value': str(i)})
         return temp2, rtrn, temp, numeric_col[0]
     else:
         raise PreventUpdate
@@ -644,7 +645,8 @@ def update2D(df2, x, y, r, c):
                ])
 def updateContour2D(df2, x, y):
     df = pd.read_json(df2, orient='split')
-    fig = go.Figure(go.Histogram2dContour(x = df[x],y = df[y]))
+    fig = go.Figure(go.Histogram2dContour(x = df[x],y = df[y],
+                    hovertemplate = str(x) + ': %{x}<br>' +  str(y) + ': %{y}<br>' + 'Count' + ': %{z}'))
     fig.layout.xaxis.fixedrange = False
     fig.layout.yaxis.fixedrange = False
     fig.update_yaxes(automargin=True)
@@ -779,7 +781,7 @@ def updateScatter(df2, x, y, filters, row, col):
     else:
         if row:
             if col:
-                fig = px.scatter(df.sort_values(by=x), x=x, y=y, facet_col=col)
+                fig = px.scatter(df.sort_values(by=x), x=x, y=y, facet_row=row, facet_col=col)
             else:
                 fig = px.scatter(df.sort_values(by=x), x=x, y=y, facet_row=row)
         else:
@@ -820,11 +822,13 @@ def updateScatter3D(df2, x, y, z, filters):
             fig.add_scatter3d(x=df.loc[df[filters] == i].sort_values(by=x)[x].values, y=df.loc[df[filters] == i].sort_values(by=x)[y].values, z=df.loc[df[filters] == i].sort_values(by=x)[z].values,
                                         mode='markers',
                                         name=i, 
-                                        marker=dict(size=5))
+                                        marker=dict(size=5),
+                                        hovertemplate = str(x) + ': %{x}<br>' +  str(y) + ': %{y}<br>' + str(z) + ': %{z}')
     else:
         fig.add_trace(go.Scatter3d(x=df.sort_values(by=x)[x].values, y=df.sort_values(by=x)[y].values, z=df.sort_values(by=x)[z].values,
                                     mode='markers',
-                                    marker=dict(size=5)))
+                                    marker=dict(size=5),
+                                    hovertemplate = str(x) + ': %{x}<br>' +  str(y) + ': %{y}<br>' + str(z) + ': %{z}'))
     fig.update_yaxes(automargin=True)
     fig.update_xaxes(automargin=True)
     fig.layout.xaxis.fixedrange = False
@@ -881,7 +885,8 @@ def updateSurface3D(df2, x):
 def updateMesh3D(df2, x, y, z):
     df = pd.read_json(df2, orient='split')
     fig = go.Figure()
-    fig.add_trace(go.Mesh3d(x=df[x], y=df[y], z=df[z], opacity=.5))
+    fig.add_trace(go.Mesh3d(x=df[x], y=df[y], z=df[z], opacity=.5,
+                 hovertemplate = str(x) + ': %{x}<br>' +  str(y) + ': %{y}<br>' + str(z) + ': %{z}'))
     fig.update_yaxes(automargin=True)
     fig.update_xaxes(automargin=True)
     fig.layout.xaxis.fixedrange = False
@@ -913,10 +918,12 @@ def updateLine(df2, x, y, filters):
         for i in df[filters].unique():
             fig.add_trace(go.Scattergl(x=df.loc[df[filters] == i].sort_values(by=x)[x].values, y=df.loc[df[filters] == i].sort_values(by=x)[y].values,
                                 mode='lines',
+                                hovertemplate = str(x) + ': %{x}<br>' +  str(y) + ': %{y}<br>',
                                 name=i))
     else:
         fig.add_trace(go.Scattergl(x=df.sort_values(by=x)[x].values, y=df.sort_values(by=x)[y].values,
                                 mode='lines',
+                                hovertemplate = str(x) + ': %{x}<br>' +  str(y) + ': %{y}<br>',
                                 name=x))
 
     fig.update_yaxes(automargin=True)
@@ -954,9 +961,11 @@ def updateLine3D(df2, x, y, z, filters):
         for i in df[filters].unique():
             fig.add_scatter3d(x=df.loc[df[filters] == i].sort_values(by=x)[x].values, y=df.loc[df[filters] == i].sort_values(by=x)[y].values, z=df.loc[df[filters] == i].sort_values(by=x)[z].values,
                                         mode='lines',
+                                        hovertemplate = str(x) + ': %{x}<br>' +  str(y) + ': %{y}<br>' + str(z) + ': %{z}',
                                         name=i)
     else:
         fig.add_trace(go.Scatter3d(x=df.sort_values(by=x)[x].values, y=df.sort_values(by=x)[y].values, z=df.sort_values(by=x)[z].values,
+                                    hovertemplate = str(x) + ': %{x}<br>' +  str(y) + ': %{y}<br>' + str(z) + ': %{z}',
                                     mode='lines'))
     fig.update_yaxes(automargin=True)
     fig.update_xaxes(automargin=True)
@@ -1151,14 +1160,12 @@ def updateFitFigure3D(df2, x, z, y, transformation, btn, TrainOrTest, xtest, coe
     fig = go.Figure()
     if btn:  
         if x:
- #           mesh_size = .02
             if str(TrainOrTest) == 'train':
                 df = pd.read_json(df2)
             elif str(TrainOrTest) == 'test':
                 df = pd.read_json(xtest)
             betas = pd.read_json(coef)
             if transformation == 'standardize':
-#                temp_df = Standardize(df, True)
                 if sorted(df[y].unique()) == [0, 1]:
                     fig.add_trace(go.Scatter3d(x=Standardize(df.sort_values(by=x)[x].values), y=Standardize(df.sort_values(by=x)[z].values), z=df.sort_values(by=x)[y].values,
                                     mode='markers',
@@ -1179,18 +1186,7 @@ def updateFitFigure3D(df2, x, z, y, transformation, btn, TrainOrTest, xtest, coe
                                     mode='lines',
                                     name='Model Fit',
                                     hovertemplate = str(y) + ': %{z}<br>' + str(x) + ': %{x}<br>' + str(z) + ': %{y}<br>'))
-#                x_min, x_max = temp_df[x].min(), temp_df[x].max()
-#                y_min, y_max = temp_df['sepal_width'].min(), temp_df['sepal_width'].max()
-#                s_min, s_max = temp_df['sepal_width'].min(), temp_df['sepal_width'].max()
-#                xrange = np.arange(x_min, x_max, mesh_size)
-#                yrange = np.arange(y_min, y_max, mesh_size)
-#                srange = np.arange(s_min, s_max, mesh_size)
-#                xx, yy, ss = np.meshgrid(xrange, yrange, srange)               
-#                predX = np.dot(np.c_[[1 for i in range(xx.ravel().shape[0])], xx.ravel(), yy.ravel(),  ss.ravel()], betas.T.to_numpy())
-#                pred = predX.reshape(xx.shape)
-#                fig.add_trace(go.Surface(x=xrange, y=yrange, z=pred, name='pred_surface'))
             elif transformation == 'minmax':
-                #temp_df = MinMax(df, True)
               if sorted(df[y].unique()) == [0, 1]:
                     fig.add_trace(go.Scatter3d(x=MinMax(df.sort_values(by=x)[x].values), y=MinMax(df.sort_values(by=x)[z].values), z=df.sort_values(by=x)[y].values,
                                         mode='markers',
@@ -1211,14 +1207,6 @@ def updateFitFigure3D(df2, x, z, y, transformation, btn, TrainOrTest, xtest, coe
                                         mode='lines',
                                         name='Model Fit',
                                         hovertemplate = str(y) + ': %{z}<br>' + str(x) + ': %{x}<br>' + str(z) + ': %{y}<br>'))                
-#                x_min, x_max = 0, 1
-#                y_min, y_max = 0, 1
-#                xrange = np.arange(x_min, x_max, mesh_size)
-#                yrange = np.arange(y_min, y_max, mesh_size)
-#                xx, yy = np.meshgrid(xrange, yrange)               
-#                predX = np.dot(np.c_[[1 for i in range(xx.ravel().shape[0])], xx.ravel(), yy.ravel()], betas[['intercept',x,z]].T.to_numpy())
-#                pred = predX.reshape(xx.shape)
-#                fig.add_trace(go.Surface(x=xrange, y=yrange, z=pred, name='pred_surface'))
             else:
                 if sorted(df[y].unique()) == [0, 1]:
                     fig.add_trace(go.Scatter3d(x=df[x], y=df[z], z=df[y].values,
@@ -1240,14 +1228,6 @@ def updateFitFigure3D(df2, x, z, y, transformation, btn, TrainOrTest, xtest, coe
                                         mode='lines',
                                         name='Model Fit',
                                         hovertemplate = str(y) + ': %{z}<br>' + str(x) + ': %{x}<br>' + str(z) + ': %{y}<br>'))
-                #x_min, x_max = df[x].min(), df[x].max()
-                #y_min, y_max = df[z].min(), df[z].max()
-                #xrange = np.arange(x_min, x_max, mesh_size)
-                #yrange = np.arange(y_min, y_max, mesh_size)
-                #xx, yy = np.meshgrid(xrange, yrange)               
-                #predX = np.dot(np.c_[[1 for i in range(xx.ravel().shape[0])], xx.ravel(), yy.ravel()], betas[['intercept',x,z]].T.to_numpy())
-                #pred = predX.reshape(xx.shape)
-                #fig.add_trace(go.Surface(x=xrange, y=yrange, z=pred, name='pred_surface'))
             fig.layout.xaxis.fixedrange = False
             fig.update_yaxes(automargin=True)
             fig.update_xaxes(automargin=True)
@@ -1329,16 +1309,22 @@ def updateCorr(df2, nav, group, value):
             fig = go.Figure()
             fig.add_trace(go.Heatmap(z=corr.values,
                     x=corr.index.values,
-                    y=corr.columns.values))
+                    y=corr.columns.values,
+                    hovertemplate = '%{x} - %{y}<br>' + "Correlation" + ': %{z}'))
         else:
             corr = pd.read_json(df2, orient='split').corr()
             fig = go.Figure()
             fig.add_trace(go.Heatmap(z=corr.values,
                     x=corr.index.values,
-                    y=corr.columns.values))
-        fig.update_layout(paper_bgcolor='#060606',autosize=True,hoverlabel=dict(bgcolor='white', font_color='black', font_size=18),
-                            font_family = 'Montserrat, sans-serif',
-                            font_color='#FCFCFC')
+                    y=corr.columns.values,
+                    hovertemplate = '%{x} - %{y}<br>' + "Correlation" + ': %{z}'))
+        fig.update_layout(
+            paper_bgcolor='#060606',
+            autosize=True,
+            hoverlabel=dict(bgcolor='white',
+            font_color='black', font_size=18),
+            font_family = 'Montserrat, sans-serif',
+            font_color='#FCFCFC')
         fig.update_yaxes(automargin=True)
         fig.update_xaxes(automargin=True)
         fig.layout.xaxis.fixedrange = False
@@ -1379,7 +1365,7 @@ def updateShuffle(df, btn):
               [Input('radioViz', 'value'),
                State('checkIV', 'value'),
                Input('btnFit', 'n_clicks')], prevent_initial_call=True)
-def update_vmr(val, x, btn):
+def updateViewModelResults(val, x, btn):
     if btn or val:
         if val == 'residuals':
             try:
@@ -1416,10 +1402,23 @@ def update_vmr(val, x, btn):
     else:
         raise PreventUpdate
 
+
+@app.callback([Output('user_upload_section_content', 'style'),
+               Output('upload_section_content', 'style')],
+              [Input('radioChooseDataOption', 'value')])
+def updateDataSelection(val):
+    if val == 'sampDataset':
+        return [{'display': 'flex'}, {'display': 'none'}]
+    elif val == 'userUploadDataset':
+        return [{'display': 'none'}, {'display': 'flex'}]
+    else:
+        raise PreventUpdate
+
+    
 @app.callback(Output('userFig', 'children'),
               [Input('navFig', 'value')
                ])
-def update_user_choice(val):
+def updateUserChoice(val):
     if val == 'figScatter':
         return cardScatter
     elif val == 'figScatter3D':
@@ -1482,13 +1481,6 @@ def run(df2, y, x, transformation, btn, prcnt, intercept):
     if btn:
         tempdf = pd.read_json(df2, orient='split').dropna()._get_numeric_data()
         if sorted(tempdf[y].unique()) == [0, 1]:
-            ip = ''
-            time = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
-            task = 2 
-            if request.environ.get('HTTP_X_FORWARDED_FOR') is None:
-                ip = request.environ['REMOTE_ADDR']
-            else:
-                ip = request.environ['HTTP_X_FORWARDED_FOR'] #if behind a proxy
             if 'yes' in intercept:        
                 x.insert(0, 'Intercept')
             if transformation == 'standardize':
@@ -1558,9 +1550,9 @@ def run(df2, y, x, transformation, btn, prcnt, intercept):
                     X_test = df[x].head(1)
                     df['userYhat'] = test
             if float(prcnt) > 0:
-                ac = accuracy_score(y_test, test_class)
-                pc = precision_score(y_test, test_class)
-                rc = recall_score(y_test, test_class)
+                ac = round(accuracy_score(y_test, test_class), 2)
+                pc = round(precision_score(y_test, test_class), 2)
+                rc = round(recall_score(y_test, test_class), 2)
             else:
                 ac = 0
                 pc = 0
@@ -1641,13 +1633,6 @@ def run(df2, y, x, transformation, btn, prcnt, intercept):
             ols = OLS()
             dct = pd.DataFrame()
             dct2 = pd.DataFrame()
-            ip = ''
-            time = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
-            task = 2 
-            if request.environ.get('HTTP_X_FORWARDED_FOR') is None:
-                ip = request.environ['REMOTE_ADDR']
-            else:
-                ip = request.environ['HTTP_X_FORWARDED_FOR'] #if behind a proxy
             if transformation == 'standardize':
                 df = Standardize(tempdf, True)
                 if float(prcnt) > 0:
